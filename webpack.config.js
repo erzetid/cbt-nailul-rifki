@@ -6,7 +6,7 @@ const config = {
   externals: [webpackNodeExternals()],
   devtool: 'source-map',
   output: {
-    filename: './bundle.cjs'
+    filename: './main.js'
   },
   target: 'node',
   module: {
@@ -35,12 +35,9 @@ const config = {
     ]
   },
   plugins: [
-    new WebpackObfuscatorPlugin(
-      {
-        rotateStringArray: true
-      },
-      ['excluded_bundle_name.js']
-    )
+    new WebpackObfuscatorPlugin({
+      rotateStringArray: true
+    })
   ]
 };
 

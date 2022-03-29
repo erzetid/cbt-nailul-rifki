@@ -1,13 +1,13 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const soalSchema = new mongoose.Schema({
   nama: String,
   butir: [{ soal: String, pilihan: [{ opsi: String }], jawaban: String }],
   jumlah: Number,
-  diperbarui: Date
+  diperbarui: Date,
 });
 
-const soalService = mongoose.model('soals', soalSchema);
+const soalService = mongoose.model("soals", soalSchema);
 
 export default class Soals {
   service = soalService;
@@ -16,9 +16,9 @@ export default class Soals {
     const butir = [];
     const pilihan = [];
     for (let index = 0; index < jumlahOpsi; index++) {
-      pilihan.push({ opsi: '' });
+      pilihan.push({ opsi: "" });
     }
-    const objButir = { pilihan, soal: '', jawaban: '' };
+    const objButir = { pilihan, soal: "", jawaban: "" };
 
     for (let index = 0; index < jumlah; index++) {
       butir.push(objButir);
@@ -27,22 +27,22 @@ export default class Soals {
       nama,
       jumlah,
       butir,
-      diperbarui: new Date()
+      diperbarui: new Date(),
     });
     const query = await newSoal.save();
     if (!query) {
-      throw new Error('Gagal menyimpan soal!');
+      throw new Error("Gagal menyimpan soal!");
     }
     return query;
   }
 
   async editButirSoal(_idButirSoal, soal) {
     const query = await this.service.findOneAndUpdate(
-      { 'butir._id': _idButirSoal },
+      { "butir._id": _idButirSoal },
       {
         $set: {
-          'butir.$.soal': soal
-        }
+          "butir.$.soal": soal,
+        },
       },
       { new: true }
     );
@@ -52,11 +52,11 @@ export default class Soals {
 
   async editJawabanSoal(_idButirSoal, jawaban) {
     const query = await this.service.findOneAndUpdate(
-      { 'butir._id': _idButirSoal },
+      { "butir._id": _idButirSoal },
       {
         $set: {
-          'butir.$.jawaban': jawaban
-        }
+          "butir.$.jawaban": jawaban,
+        },
       },
       { new: true }
     );
@@ -65,21 +65,21 @@ export default class Soals {
 
   async editOpsi(_idOpsi, opsi) {
     const query = await this.service.findOneAndUpdate(
-      { 'butir.pilihan._id': _idOpsi },
+      { "butir.pilihan._id": _idOpsi },
 
       {
         $set: {
-          'butir.$.pilihan.$[j].opsi': opsi
-        }
+          "butir.$.pilihan.$[j].opsi": opsi,
+        },
       },
       {
         arrayFilters: [
           {
-            'j._id': {
-              $eq: _idOpsi
-            }
-          }
-        ]
+            "j._id": {
+              $eq: _idOpsi,
+            },
+          },
+        ],
       }
     );
     return query;
@@ -100,5 +100,33 @@ export default class Soals {
     const query = await this.service.findById(_id);
 
     return query;
+  }
+
+  async getById(_id) {
+    const query = await this.service.findById(_id);
+
+    return query;
+  }
+
+  async getPerSoal(_id) {
+    const query = await this.service.aggregate([
+      { $match: { "butir._id": mongoose.Types.ObjectId(_id) } },
+      {
+        $project: {
+          _id: 1,
+          butir: {
+            $filter: {
+              input: "$butir",
+              as: "idButir",
+              cond: { $eq: ["$$idButir._id", mongoose.Types.ObjectId(_id)] },
+            },
+          },
+        },
+      },
+    ]);
+    if (query.length) {
+      return query[0].butir[0];
+    }
+    return null;
   }
 }

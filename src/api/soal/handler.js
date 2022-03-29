@@ -1,5 +1,5 @@
-import Soals from '../../model/soal.js';
-import BaseHandler from '../default.js';
+import Soals from "../../model/soal.js";
+import BaseHandler from "../default.js";
 
 const soal = new Soals();
 
@@ -12,20 +12,20 @@ export default class SoalHandler extends BaseHandler {
           _id: item._id,
           nama: item.nama,
           jumlah: item.jumlah,
-          diperbarui: item.diperbarui
+          diperbarui: item.diperbarui,
         };
       });
 
       return super.render(res, 200, {
-        status: 'success',
-        message: 'Data soal berhasil dirender!',
-        data
+        status: "success",
+        message: "Data soal berhasil dirender!",
+        data,
       });
     } catch (error) {
       console.log(error);
       return super.render(res, 500, {
-        status: 'error',
-        message: 'Mohon maaf, kesalahan server!'
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
       });
     }
   }
@@ -36,14 +36,14 @@ export default class SoalHandler extends BaseHandler {
 
       await soal.simpan(nama, jumlah, jumlahOpsi);
       return super.render(res, 201, {
-        status: 'success',
-        message: 'Soal berhasil disimpan!'
+        status: "success",
+        message: "Soal berhasil disimpan!",
       });
     } catch (error) {
       console.log(error);
       return super.render(res, 500, {
-        status: 'error',
-        message: 'Mohon maaf, kesalahan server!'
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
       });
     }
   }
@@ -54,20 +54,28 @@ export default class SoalHandler extends BaseHandler {
       const data = await soal.getById(_id);
       if (!data) {
         return super.render(res, 400, {
-          status: 'error',
-          message: 'Soal tidak ditemukan!'
+          status: "error",
+          message: "Soal tidak ditemukan!",
         });
       }
+
+      const dataSoal = data.butir.map((x, index) => {
+        const { _id } = x;
+        const no = index + 1;
+        return { no, _id };
+      });
+
+      const final = { _id: data._id, dataSoal };
       return super.render(res, 200, {
-        status: 'success',
-        message: 'Siswa berhasil dihapus!',
-        data
+        status: "success",
+        message: "Siswa berhasil dihapus!",
+        data: final,
       });
     } catch (error) {
       console.log(error);
       return super.render(res, 500, {
-        status: 'error',
-        message: 'Mohon maaf, kesalahan server!'
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
       });
     }
   }
@@ -78,20 +86,38 @@ export default class SoalHandler extends BaseHandler {
       const checkSoal = await soal.getById(_id);
       if (!checkSoal) {
         return super.render(res, 400, {
-          status: 'error',
-          message: 'Soal tidak ditemukan!'
+          status: "error",
+          message: "Soal tidak ditemukan!",
         });
       }
       await soal.hapus(_id);
       return super.render(res, 200, {
-        status: 'success',
-        message: 'Soal berhasil dihapus!'
+        status: "success",
+        message: "Soal berhasil dihapus!",
       });
     } catch (error) {
       console.log(error);
       return super.render(res, 500, {
-        status: 'error',
-        message: 'Mohon maaf, kesalahan server!'
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
+  async getPerSoal(req, res, _next) {
+    try {
+      const _id = req.params._id;
+      const data = await soal.getPerSoal(_id);
+      return super.render(res, 200, {
+        status: "success",
+        message: "Soal berhasil dihapus!",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
       });
     }
   }

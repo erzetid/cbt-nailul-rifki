@@ -7,5 +7,8 @@ Content-Type: application/json
     "password": "pass2022"
 }
 
+### refresh login
+GET http://localhost:3660/auth/token
+
 ### Reset login
-DELETE http://localhost:3660/auth/61fbb05ddacfca0517da896a
+DELETE http://localhost:3660/auth/

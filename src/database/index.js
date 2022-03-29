@@ -14,6 +14,7 @@ export default class Database {
       console.log('Mongoose connected... ');
       return connecting;
     } catch (err) {
+      console.log(err);
       throw new Error('Connecting database failed!');
     }
   }
