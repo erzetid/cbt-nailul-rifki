@@ -3,6 +3,7 @@ import Users from "../../model/user.js";
 import BaseHandler from "../default.js";
 import bcrypt from "bcrypt";
 import Kelas from "../../model/kelas.js";
+import mongoose from "mongoose";
 
 const kelass = new Kelas();
 const siswa = new Siswas();
@@ -139,7 +140,11 @@ export default class Siswahandler extends BaseHandler {
   async putHandler(req, res, _next) {
     try {
       const { _id, nama, kelas } = req.body;
-      if (typeof _id !== "string" || _id === "") {
+      if (
+        typeof _id !== "string" ||
+        _id === "" ||
+        !mongoose.isValidObjectId(_id)
+      ) {
         return super.render(res, 400, {
           status: "error",
           message: "Id tidak boleh kosong!",
@@ -151,15 +156,19 @@ export default class Siswahandler extends BaseHandler {
           message: "Nama tidak boleh kosong!",
         });
       }
-      if (typeof kelas !== "string" || kelas === "") {
+      if (
+        typeof kelas !== "string" ||
+        kelas === "" ||
+        mongoose.isValidObjectId(kelas)
+      ) {
         return super.render(res, 400, {
           status: "error",
           message: "kelas tidak boleh kosong!",
         });
       }
-      const checkNama = await kelass.getById(kelas);
+      const checkKelas = await kelass.getById(kelas);
 
-      if (!checkNama) {
+      if (!checkKelas) {
         return super.render(res, 400, {
           status: "error",
           message: "Kelas tidak tersedia!",
@@ -189,6 +198,15 @@ export default class Siswahandler extends BaseHandler {
   async deleteHandler(req, res, _next) {
     try {
       const _id = req.params._id;
+      if (
+        typeof _id !== "string" ||
+        _id === "" ||
+        !mongoose.isValidObjectId(_id)
+      )
+        return super.render(res, 400, {
+          status: "error",
+          message: "Id tidak boleh kosong!",
+        });
 
       const checkSiswa = await siswa.getById(_id);
       if (!checkSiswa) {

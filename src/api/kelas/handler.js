@@ -1,8 +1,8 @@
 import Kelas from "../../model/kelas.js";
 import BaseHandler from "../default.js";
+import mongoose from "mongoose";
 
 const kelas = new Kelas();
-
 export default class KelasHandler extends BaseHandler {
   async getHandler(_req, res, _next) {
     try {
@@ -61,7 +61,11 @@ export default class KelasHandler extends BaseHandler {
           message: "nama tidak boleh kosong!",
         });
       }
-      if (typeof _id !== "string" || _id === "") {
+      if (
+        typeof _id !== "string" ||
+        _id === "" ||
+        !mongoose.isValidObjectId(_id)
+      ) {
         return super.render(res, 400, {
           status: "error",
           message: "Id tidak boleh kosong!",

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Sekolahs from "../../model/sekolah.js";
 import BaseHandler from "../default.js";
 
@@ -76,6 +77,13 @@ export default class SekolahHandler extends BaseHandler {
         typeof tahunPelajaranSekarang !== "string" ||
         tahunPelajaranSekarang === ""
       ) {
+        return super.render(res, 400, {
+          status: "error",
+          message: "Tahun pelajaran sekarang sekolah tidak boleh kosong!",
+        });
+      }
+
+      if (!mongoose.isValidObjectId(_id)) {
         return super.render(res, 400, {
           status: "error",
           message: "Tahun pelajaran sekarang sekolah tidak boleh kosong!",
