@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { verifyTokenAdmin } from "../../middelwares/verifyToken.js";
 import Siswahandler from "./handler.js";
-
 const siswahandler = new Siswahandler();
 
 const router = Router();

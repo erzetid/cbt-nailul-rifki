@@ -2,7 +2,9 @@ import Siswas from "../../model/siswa.js";
 import Users from "../../model/user.js";
 import BaseHandler from "../default.js";
 import bcrypt from "bcrypt";
+import Kelas from "../../model/kelas.js";
 
+const kelass = new Kelas();
 const siswa = new Siswas();
 const user = new Users();
 
@@ -155,6 +157,15 @@ export default class Siswahandler extends BaseHandler {
           message: "kelas tidak boleh kosong!",
         });
       }
+      const checkNama = await kelass.getById(kelas);
+
+      if (!checkNama) {
+        return super.render(res, 400, {
+          status: "error",
+          message: "Kelas tidak tersedia!",
+        });
+      }
+
       const siswas = await siswa.editSiswa(_id, { nama, kelas });
       if (!siswas)
         return super.render(res, 400, {
