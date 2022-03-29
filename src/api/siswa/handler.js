@@ -54,6 +54,52 @@ export default class Siswahandler extends BaseHandler {
   async postHandler(req, res, _next) {
     try {
       const { username, password: plainPassword, nisn, nama, kelas } = req.body;
+      const validateSpace = (str) => /\s/.test(str);
+      if (typeof username !== "string" || username === "") {
+        return super.render(res, 400, {
+          status: "error",
+          message: "Username tidak boleh kosong!",
+        });
+      }
+
+      if (
+        typeof plainPassword !== "string" ||
+        plainPassword === "" ||
+        plainPassword.length < 8
+      ) {
+        return super.render(res, 400, {
+          status: "error",
+          message: "Password minimal 8 karakter!",
+        });
+      }
+
+      if (validateSpace(plainPassword) || validateSpace(username))
+        return super.render(res, 400, {
+          status: "error",
+          message: "Username dan password tidak boleh ada spasi!",
+        });
+
+      if (typeof nisn !== "string" || nisn === "") {
+        return super.render(res, 400, {
+          status: "error",
+          message: "Nisn tidak boleh kosong!",
+        });
+      }
+
+      if (typeof nama !== "string" || nama === "") {
+        return super.render(res, 400, {
+          status: "error",
+          message: "nama tidak boleh kosong!",
+        });
+      }
+
+      if (typeof kelas !== "string" || kelas === "") {
+        return super.render(res, 400, {
+          status: "error",
+          message: "kelas tidak boleh kosong!",
+        });
+      }
+
       const salt = bcrypt.genSaltSync(10);
       const password = bcrypt.hashSync(plainPassword, salt);
       const checkUsername = await user.getUsername(username);
@@ -91,7 +137,30 @@ export default class Siswahandler extends BaseHandler {
   async putHandler(req, res, _next) {
     try {
       const { _id, nama, kelas } = req.body;
-      await siswa.editSiswa(_id, { nama, kelas });
+      if (typeof _id !== "string" || _id === "") {
+        return super.render(res, 400, {
+          status: "error",
+          message: "Id tidak boleh kosong!",
+        });
+      }
+      if (typeof nama !== "string" || nama === "") {
+        return super.render(res, 400, {
+          status: "error",
+          message: "Nama tidak boleh kosong!",
+        });
+      }
+      if (typeof kelas !== "string" || kelas === "") {
+        return super.render(res, 400, {
+          status: "error",
+          message: "kelas tidak boleh kosong!",
+        });
+      }
+      const siswas = await siswa.editSiswa(_id, { nama, kelas });
+      if (!siswas)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Siswa tidak ditemukan!",
+        });
 
       return super.render(res, 200, {
         status: "success",
