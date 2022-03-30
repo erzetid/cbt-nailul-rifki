@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 export default class Database {
   constructor(mongoUri) {
@@ -8,20 +8,21 @@ export default class Database {
     try {
       const options = {
         autoIndex: true,
-        autoCreate: true
+        autoCreate: true,
       };
       const connecting = await mongoose.connect(this.mongoUri, options);
-      console.log('Mongoose connected... ');
+      console.log("Mongoose connected... ");
       return connecting;
     } catch (err) {
       console.log(err);
-      throw new Error('Connecting database failed!');
+      console.log("Connecting database failed!");
+      process.exit(1);
     }
   }
 
   async disconnect() {
     const disconnecting = await mongoose.connection.close();
-    console.log('Mongoose disconnected...');
+    console.log("Mongoose disconnected...");
     return disconnecting;
   }
 

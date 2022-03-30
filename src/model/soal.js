@@ -36,7 +36,7 @@ export default class Soals {
     return query;
   }
 
-  async editButirSoal(_idButirSoal, soal) {
+  async editPertanyaan(_idButirSoal, soal) {
     const query = await this.service.findOneAndUpdate(
       { "butir._id": _idButirSoal },
       {
@@ -50,7 +50,7 @@ export default class Soals {
     return query;
   }
 
-  async editJawabanSoal(_idButirSoal, jawaban) {
+  async setJawabanSoal(_idButirSoal, jawaban) {
     const query = await this.service.findOneAndUpdate(
       { "butir._id": _idButirSoal },
       {
@@ -61,6 +61,12 @@ export default class Soals {
       { new: true }
     );
     return query;
+  }
+
+  async findOpsi(idOpsi) {
+    return await this.service.findOne({
+      "butir.pilihan._id": idOpsi,
+    });
   }
 
   async editOpsi(_idOpsi, opsi) {

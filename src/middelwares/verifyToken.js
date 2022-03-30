@@ -17,7 +17,7 @@ export const verifyTokenAdmin = (req, res, next) => {
 
     let verifiedUser = jwt.verify(token, JWT_SECRET); // config.TOKEN_SECRET => 'secretKey'
     if (!verifiedUser) return res.status(401).json("Unauthorized request");
-    console.log(verifiedUser);
+
     if (verifiedUser.role !== "admin")
       return res.status(401).json({
         status: "error",
