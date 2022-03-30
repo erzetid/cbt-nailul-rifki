@@ -13,8 +13,8 @@ export default class Server {
   constructor(port) {
     this.port = port;
     this.view = {
-      static: path.join(path.resolve(), "./public"),
-      public: path.join(path.resolve(), "./public/index.html"),
+      static: path.join(path.resolve(), "dist/build/"),
+      public: path.join(path.resolve(), "dist/build/index.html"),
     };
     this.middelwares();
     this.routes();

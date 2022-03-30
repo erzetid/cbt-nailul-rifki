@@ -13,9 +13,8 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { forwardRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import LoadingButton from "@mui/lab/LoadingButton";
-import MuiAlert from "@mui/material/Alert";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getSiswa, postSiswa, deleteSiswa, putSiswa } from "store/slice/siswaThunk";
@@ -37,6 +36,7 @@ import DataTable from "examples/Tables/DataTable";
 
 // Data
 import MDButton from "components/MDButton";
+import { jwtDeccode } from "utils/jwtDecode";
 
 const columns = [
   { Header: "nisn", accessor: "nisn", width: "10%", align: "left" },
@@ -46,7 +46,7 @@ const columns = [
   { Header: "action", accessor: "action", align: "center" },
 ];
 
-function Aktifitas() {
+const Aktifitas = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [refreshTable, setRefreshTable] = useState(0);
@@ -58,7 +58,6 @@ function Aktifitas() {
       if (auth.payload.status === "success") {
         const jwt = jwtDeccode(auth.payload.token);
         if (jwt.role !== "admin") {
-          console.log(jwt);
           return navigate("/login");
         }
       } else {
@@ -111,8 +110,6 @@ function Aktifitas() {
 
   useEffect(() => {
     const fetchSiswa = async () => {
-      const auth = await dispatch(refreshToken());
-      if (auth.payload.status !== "success") return navigate("/login");
       const _siswa = await dispatch(getSiswa());
       setBarisSiswa(setTable(_siswa.payload.data));
     };
@@ -160,6 +157,6 @@ function Aktifitas() {
       <Footer />
     </DashboardLayout>
   );
-}
+};
 
 export default Aktifitas;

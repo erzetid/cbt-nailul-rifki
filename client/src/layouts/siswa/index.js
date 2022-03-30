@@ -67,7 +67,7 @@ function Siswa() {
   const dispatch = useDispatch();
   const { message, loading, status } = useSelector((state) => state.siswa);
   const [refreshTable, setRefreshTable] = useState(0);
-
+  const { token } = useSelector((state) => state.auth);
   const [open, setOpen] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [_id, setId] = useState(null);
@@ -240,12 +240,10 @@ function Siswa() {
       }
     };
     checkLogin();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     const fetchSiswa = async () => {
-      const auth = await dispatch(refreshToken());
-      if (auth.payload.status !== "success") return navigate("/login");
       const _siswa = await dispatch(getSiswa());
       setBarisSiswa(setTable(_siswa.payload.data));
     };

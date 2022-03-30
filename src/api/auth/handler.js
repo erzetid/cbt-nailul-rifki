@@ -50,6 +50,7 @@ export default class AuthHandler extends BaseHandler {
         proxy: true,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
+        secure: true,
       });
       return super.render(res, 200, {
         status: "success",
@@ -105,6 +106,7 @@ export default class AuthHandler extends BaseHandler {
         proxy: true,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
+        secure: true,
       });
       super.render(res, 200, {
         status: "success",

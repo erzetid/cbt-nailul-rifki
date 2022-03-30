@@ -12,3 +12,5 @@ const generatePassword = async () => {
   console.log(`password: ${password}`);
 };
 generatePassword();
+
+// TODO backend validasi kelas jika sudah di pakai

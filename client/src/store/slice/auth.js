@@ -38,6 +38,11 @@ export const authSlice = createSlice({
       state.token = token;
       state.message = null;
     },
+    [refreshToken.rejected]: (state, action) => {
+      const { message, token } = action.payload;
+      state.token = token;
+      state.message = message;
+    },
   },
 });
 

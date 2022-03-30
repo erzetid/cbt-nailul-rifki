@@ -159,7 +159,7 @@ export default class Siswahandler extends BaseHandler {
       if (
         typeof kelas !== "string" ||
         kelas === "" ||
-        mongoose.isValidObjectId(kelas)
+        !mongoose.isValidObjectId(kelas)
       ) {
         return super.render(res, 400, {
           status: "error",

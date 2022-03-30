@@ -1,44 +1,47 @@
-import webpackNodeExternals from 'webpack-node-externals';
-import WebpackObfuscatorPlugin from 'webpack-obfuscator';
+import webpackNodeExternals from "webpack-node-externals";
+import WebpackObfuscatorPlugin from "webpack-obfuscator";
+import path from "path";
 
 const config = {
-  entry: './app.js',
+  entry: "./app.js",
   externals: [webpackNodeExternals()],
-  devtool: 'source-map',
+  devtool: "source-map",
   output: {
-    filename: './main.js'
+    path: path.join(path.resolve(), "dist"),
+    filename: "./main.cjs",
+    publicPath: "/",
   },
-  target: 'node',
+  target: "node",
   module: {
     rules: [
       {
         test: /\.m?js$/,
         exclude: /(node_modules|bower_components)/,
         use: {
-          loader: './node_modules/babel-loader',
+          loader: "./node_modules/babel-loader",
           options: {
-            presets: ['@babel/preset-env']
-          }
-        }
+            presets: ["@babel/preset-env"],
+          },
+        },
       },
 
       {
         test: /\.js$/,
-        enforce: 'post',
+        enforce: "post",
         use: {
           loader: WebpackObfuscatorPlugin.loader,
           options: {
-            rotateStringArray: true
-          }
-        }
-      }
-    ]
+            rotateStringArray: true,
+          },
+        },
+      },
+    ],
   },
   plugins: [
     new WebpackObfuscatorPlugin({
-      rotateStringArray: true
-    })
-  ]
+      rotateStringArray: true,
+    }),
+  ],
 };
 
 export default config;
