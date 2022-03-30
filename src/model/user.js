@@ -13,12 +13,12 @@ const userService = mongoose.model("users", userSchema);
 export default class Users {
   service = userService;
 
-  async simpan(siswa, username, password, role) {
+  async simpan(idUser, username, password, role) {
     const checkUsername = await this.getUsername(username);
     if (checkUsername) {
       throw new Error("username tidak tersedia!");
     }
-    const userBaru = new this.service({ siswa, username, password, role });
+    const userBaru = new this.service({ idUser, username, password, role });
     const query = await userBaru.save();
 
     return query;
@@ -62,8 +62,8 @@ export default class Users {
     return query;
   }
 
-  async getBySiswa(siswa) {
-    const query = await this.service.findOne({ siswa });
+  async getBySiswa(idUser) {
+    const query = await this.service.findOne({ idUser });
 
     return query;
   }
@@ -74,8 +74,8 @@ export default class Users {
     return query;
   }
 
-  async hapusByIdSiswa(siswa) {
-    const query = await this.service.deleteOne({ siswa });
+  async hapusByIdSiswa(idUser) {
+    const query = await this.service.deleteOne({ idUser });
 
     return query;
   }
