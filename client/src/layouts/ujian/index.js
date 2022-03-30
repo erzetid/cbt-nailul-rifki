@@ -36,17 +36,35 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DataTable from "examples/Tables/DataTable";
 import MDBadge from "components/MDBadge";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
+import { useDispatch } from "react-redux";
+import { refreshToken } from "store/slice/authThunk";
+import { jwtDeccode } from "utils/jwtDecode";
 
 function Ujian() {
-  const navigate = useNavigate();
   const [menu, setMenu] = useState(null);
   const [dialogSoal, setDialogSoal] = useState(false);
-
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkLogin = async () => {
+      const auth = await dispatch(refreshToken());
+      if (auth.payload.status === "success") {
+        const jwt = jwtDeccode(auth.payload.token);
+        if (jwt.role !== "admin") {
+          console.log(jwt);
+          return navigate("/login");
+        }
+      } else {
+        return navigate("/login");
+      }
+    };
+    checkLogin();
+  }, []);
   const NamaUjian = ({ nama }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
       <MDTypography variant="button" fontWeight="medium" ml={1} lineHeight={1}>

@@ -32,6 +32,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { refreshToken } from "store/slice/authThunk";
 import { useEffect } from "react";
+import { jwtDeccode } from "../../utils/jwtDecode";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -40,7 +41,15 @@ function Dashboard() {
   useEffect(() => {
     const checkLogin = async () => {
       const auth = await dispatch(refreshToken());
-      if (auth.payload.status !== "success") return navigate("/login");
+      if (auth.payload.status === "success") {
+        const jwt = jwtDeccode(auth.payload.token);
+        if (jwt.role !== "admin") {
+          console.log(jwt);
+          return navigate("/login");
+        }
+      } else {
+        return navigate("/login");
+      }
     };
     checkLogin();
   }, []);

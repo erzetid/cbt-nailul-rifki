@@ -49,6 +49,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import { jwtDeccode } from "utils/jwtDecode";
 
 const Alert = forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -225,6 +226,21 @@ function Siswa() {
       }
     }
   };
+  useEffect(() => {
+    const checkLogin = async () => {
+      const auth = await dispatch(refreshToken());
+      if (auth.payload.status === "success") {
+        const jwt = jwtDeccode(auth.payload.token);
+        if (jwt.role !== "admin") {
+          console.log(jwt);
+          return navigate("/login");
+        }
+      } else {
+        return navigate("/login");
+      }
+    };
+    checkLogin();
+  }, []);
 
   useEffect(() => {
     const fetchSiswa = async () => {

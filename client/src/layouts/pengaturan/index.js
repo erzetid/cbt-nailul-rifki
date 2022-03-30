@@ -36,6 +36,11 @@ import EditIcon from "@mui/icons-material/Edit";
 import { TextField } from "@mui/material";
 import MDButton from "components/MDButton";
 import AddIcon from "@mui/icons-material/Add";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { refreshToken } from "store/slice/authThunk";
+import { jwtDeccode } from "utils/jwtDecode";
+import { useEffect } from "react";
 
 function createData(name, content) {
   return { name, content };
@@ -50,6 +55,23 @@ const row = [
 ];
 
 function Pengaturan() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkLogin = async () => {
+      const auth = await dispatch(refreshToken());
+      if (auth.payload.status === "success") {
+        const jwt = jwtDeccode(auth.payload.token);
+        if (jwt.role !== "admin") {
+          console.log(jwt);
+          return navigate("/login");
+        }
+      } else {
+        return navigate("/login");
+      }
+    };
+    checkLogin();
+  }, []);
   const TableCoy = ({ rows }) => {
     return (
       <Table aria-label="simple table">

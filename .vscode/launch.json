@@ -8,6 +8,13 @@
       "type": "firefox",
       "request": "launch",
       "reAttach": true,
+      "name": "Launch FireFox",
+      "url": "http://localhost:3000"
+    },
+    {
+      "type": "firefox",
+      "request": "launch",
+      "reAttach": true,
       "name": "Launch localhost",
       "url": "http://localhost:3000",
       "webRoot": "http://localhost:3000"

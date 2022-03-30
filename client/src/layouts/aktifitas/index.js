@@ -52,6 +52,21 @@ function Aktifitas() {
   const [refreshTable, setRefreshTable] = useState(0);
 
   const [barisSiswa, setBarisSiswa] = useState([]);
+  useEffect(() => {
+    const checkLogin = async () => {
+      const auth = await dispatch(refreshToken());
+      if (auth.payload.status === "success") {
+        const jwt = jwtDeccode(auth.payload.token);
+        if (jwt.role !== "admin") {
+          console.log(jwt);
+          return navigate("/login");
+        }
+      } else {
+        return navigate("/login");
+      }
+    };
+    checkLogin();
+  }, []);
 
   const Nama = ({ name }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>

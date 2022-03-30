@@ -20,11 +20,13 @@ export const authSlice = createSlice({
     },
     [login.pending]: (state, action) => {
       state.loading = true;
+      state.message = null;
     },
     [login.fulfilled]: (state, action) => {
       const { token } = action.payload;
       state.token = token;
       state.loading = false;
+      state.message = null;
     },
     [login.rejected]: (state, action) => {
       const { message } = action.payload;
@@ -34,6 +36,7 @@ export const authSlice = createSlice({
     [refreshToken.fulfilled]: (state, action) => {
       const { token } = action.payload;
       state.token = token;
+      state.message = null;
     },
   },
 });

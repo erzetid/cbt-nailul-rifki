@@ -30,6 +30,7 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import { jwtDeccode } from "../../../utils/jwtDecode";
 
 function Basic() {
   const navigate = useNavigate();
@@ -37,15 +38,29 @@ function Basic() {
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const { token, loading, message } = useSelector((state) => state.auth);
-  const handleLogin = () => {
+  const [msg, setMsg] = useState(null);
+  const handleLogin = async () => {
     if (username !== "" && password !== "") {
-      dispatch(login({ username, password }));
+      const _token = await dispatch(login({ username, password }));
+      console.log(_token);
+      if (_token.payload.status === "success") {
+        const jwt = jwtDeccode(_token.payload.token);
+        if (jwt.role !== "admin") {
+          setMsg("User tidak ditemukan");
+        }
+      }
     }
   };
   useEffect(() => {
     const checkLogin = async () => {
-      const auth =  dispatch(refreshToken());
-      if (auth.payload.status === "success") return navigate("/dashboard");
+      const auth = await dispatch(refreshToken());
+      if (auth.payload.status === "success") {
+        const jwt = jwtDeccode(auth.payload.token);
+        if (jwt.role === "admin") {
+          console.log(jwt);
+          return navigate("/dashboard");
+        }
+      }
     };
     checkLogin();
   }, [token]);
@@ -90,6 +105,11 @@ function Basic() {
             {message ? (
               <MDBox mb={2}>
                 <Alert severity="warning">{message}</Alert>
+              </MDBox>
+            ) : null}
+            {msg ? (
+              <MDBox mb={2}>
+                <Alert severity="warning">{msg}</Alert>
               </MDBox>
             ) : null}
 

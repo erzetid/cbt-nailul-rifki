@@ -38,7 +38,11 @@ import MDButton from "components/MDButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import RichEditorExample from "components/Draft/Draft";
 import MDInput from "components/MDInput";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { jwtDeccode } from "utils/jwtDecode";
+import { refreshToken } from "store/slice/authThunk";
 
 const apiContoh = {
   _id: "62054fced9d1b9d18bed6394",
@@ -154,9 +158,26 @@ const contohPerSoal = {
   _id: "62054fced9d1b9d18bed6395",
 };
 
-function ManageSoal() {
+const ManageSoal = () => {
   const [valueOpsi, setValueOpsi] = useState(null);
   const [btnAktif, setBtnAktif] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkLogin = async () => {
+      const auth = await dispatch(refreshToken());
+      if (auth.payload.status === "success") {
+        const jwt = jwtDeccode(auth.payload.token);
+        if (jwt.role !== "admin") {
+          console.log(jwt);
+          return navigate("/login");
+        }
+      } else {
+        return navigate("/login");
+      }
+    };
+    checkLogin();
+  }, []);
 
   const btnSoal = apiContoh.dataSoal.map((item) => {
     return (
@@ -244,6 +265,6 @@ function ManageSoal() {
       <Footer />
     </DashboardLayout>
   );
-}
+};
 
 export default ManageSoal;
