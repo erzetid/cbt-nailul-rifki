@@ -51,6 +51,6 @@ export default class Server {
     this.app.get("/", (_req, res) => {
       res.sendFile(this.view.public);
     });
-    this.app.use("/", router);
+    this.app.use("/api/", router);
   }
 }
