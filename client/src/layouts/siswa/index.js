@@ -50,6 +50,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import { jwtDeccode } from "utils/jwtDecode";
+import { getKelas } from "store/slice/kelasThunk";
+import { filterKelas } from "utils/jwtDecode";
 
 const Alert = forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -72,6 +74,7 @@ function Siswa() {
   const [openEdit, setOpenEdit] = useState(false);
   const [_id, setId] = useState(null);
   const [msg, setMsg] = useState(null);
+  const [statusAlert, setStatusAlert] = useState("error");
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -80,6 +83,27 @@ function Siswa() {
   const [nama, setNama] = useState("");
   const [barisSiswa, setBarisSiswa] = useState([]);
   const [openAlert, setOpenAlert] = useState(false);
+  const [kelasSiswa, setKelasSiswa] = useState([]);
+  useEffect(() => {
+    const checkLogin = async () => {
+      const auth = await dispatch(refreshToken());
+      const _siswa = await dispatch(getSiswa());
+      const _kelas = await dispatch(getKelas());
+      console.log(_kelas);
+      setKelasSiswa(_kelas.payload.data);
+      setBarisSiswa(setTable(_siswa.payload.data));
+      if (auth.payload.status === "success") {
+        const jwt = jwtDeccode(auth.payload.token);
+        if (jwt.role !== "admin") {
+          console.log(jwt);
+          return navigate("/login");
+        }
+      } else {
+        return navigate("/login");
+      }
+    };
+    checkLogin();
+  }, [token, refreshTable]);
 
   const handleClickAlert = () => {
     setOpenAlert(true);
@@ -133,7 +157,7 @@ function Siswa() {
       const { kelas, nama, nisn, _id } = item;
       return {
         nama: <Nama name={nama} email="john@creative-tim.com" />,
-        kelas: <Kelas title={kelas} />,
+        kelas: <Kelas title={filterKelas(kelasSiswa, kelas)} />,
         nisn: (
           <MDTypography component="a" variant="caption" color="text" fontWeight="medium">
             {nisn}
@@ -176,8 +200,8 @@ function Siswa() {
   const handleHapus = async (_id) => {
     const _hapus = await dispatch(deleteSiswa(_id));
     setMsg(_hapus.payload.message);
+    setStatusAlert(_hapus.payload.status);
     handleClickAlert();
-
     if (_hapus.payload.status === "success") {
       setRefreshTable(refreshTable + 1);
     }
@@ -198,6 +222,7 @@ function Siswa() {
         );
 
         setMsg(_simpan.payload.message);
+        setStatusAlert(_simpan.payload.status);
         handleClickAlert();
 
         if (_simpan.payload.status === "success") {
@@ -218,6 +243,7 @@ function Siswa() {
       await dispatch(refreshToken());
       const _edit = await dispatch(putSiswa({ _id, kelas, nama }));
       setMsg(_edit.payload.message);
+      setStatusAlert(_edit.payload.status);
 
       handleClickAlert();
       if (_edit.payload.status === "success") {
@@ -226,29 +252,6 @@ function Siswa() {
       }
     }
   };
-  useEffect(() => {
-    const checkLogin = async () => {
-      const auth = await dispatch(refreshToken());
-      if (auth.payload.status === "success") {
-        const jwt = jwtDeccode(auth.payload.token);
-        if (jwt.role !== "admin") {
-          console.log(jwt);
-          return navigate("/login");
-        }
-      } else {
-        return navigate("/login");
-      }
-    };
-    checkLogin();
-  }, [token]);
-
-  useEffect(() => {
-    const fetchSiswa = async () => {
-      const _siswa = await dispatch(getSiswa());
-      setBarisSiswa(setTable(_siswa.payload.data));
-    };
-    fetchSiswa();
-  }, [refreshTable]);
 
   return (
     <DashboardLayout>
@@ -349,9 +352,9 @@ function Siswa() {
               <MenuItem value={null}>
                 <em>None</em>
               </MenuItem>
-              <MenuItem value={10}>Ten</MenuItem>
-              <MenuItem value={20}>Twenty</MenuItem>
-              <MenuItem value={30}>Thirty</MenuItem>
+              {kelasSiswa.map((k) => {
+                return <MenuItem value={k._id}>{k.nama}</MenuItem>;
+              })}
             </Select>
           </FormControl>
         </DialogContent>
@@ -394,9 +397,9 @@ function Siswa() {
               <MenuItem value={null}>
                 <em>None</em>
               </MenuItem>
-              <MenuItem value={10}>Ten</MenuItem>
-              <MenuItem value={20}>Twenty</MenuItem>
-              <MenuItem value={30}>Thirty</MenuItem>
+              {kelasSiswa.map((k) => {
+                return <MenuItem value={k._id}>{k.nama}</MenuItem>;
+              })}
             </Select>
           </FormControl>
         </DialogContent>
@@ -415,7 +418,7 @@ function Siswa() {
       </Dialog>
       <Footer />
       <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleCloseAlert}>
-        <Alert onClose={handleCloseAlert} severity={status} sx={{ width: "100%" }}>
+        <Alert onClose={handleCloseAlert} severity={statusAlert} sx={{ width: "100%" }}>
           {msg}
         </Alert>
       </Snackbar>

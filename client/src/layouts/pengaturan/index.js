@@ -42,12 +42,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { refreshToken } from "store/slice/authThunk";
 import { jwtDeccode } from "utils/jwtDecode";
 import { forwardRef, useEffect, useState } from "react";
-import { getKelas, postKelas } from "store/slice/kelasThunk";
+import { getKelas, postKelas, putKelas } from "store/slice/kelasThunk";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import { putKelas } from "store/slice/kelasThunk";
+import { getSekolah, putSekolah } from "store/slice/sekolahThunk";
 
 function createData(name, content) {
   return { name, content };
@@ -70,6 +70,16 @@ const emptyKelas = {
   _id: "",
 };
 
+const emptySekolah = {
+  _id: "",
+  namaSekolah: "",
+  email: "",
+  telepon: "",
+  alamatSekolah: "",
+  logo: "",
+  tahunPelajaranSekarang: "",
+};
+
 function Pengaturan() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -84,12 +94,15 @@ function Pengaturan() {
   const [kelasArray, setKelasArray] = useState([]);
   const [putDataKelas, setPutDataKelas] = useState(emptyKelas);
   const [tipeDialogKelas, setTipeDialogKelas] = useState("tambah");
+  const [dataSekolah, setDataSekolah] = useState(emptySekolah);
 
   useEffect(() => {
     const checkLogin = async () => {
       const auth = await dispatch(refreshToken());
       const data = await dispatch(getKelas());
+      const _dataSekolah = await dispatch(getSekolah());
       setKelasArray(data.payload.data);
+      setDataSekolah(_dataSekolah.payload.data);
       if (auth.payload.status === "success") {
         const jwt = jwtDeccode(auth.payload.token);
         if (jwt.role !== "admin") {
@@ -138,7 +151,19 @@ function Pengaturan() {
     setMsg(clickKelas.payload.message);
     setOpenAlert(true);
   };
+  const clickSekolah = async () => {
+    const _data = await dispatch(putSekolah(dataSekolah));
+    setStatusKelas(_data.payload.status);
+    setMsg(_data.payload.message);
+    setOpenAlert(true);
+  };
 
+  const editSekolah = (e, name) => {
+    const val = (e.target && e.target.value) || "";
+    let _dataSekolah = { ...dataSekolah };
+    _dataSekolah[`${name}`] = val;
+    setDataSekolah(_dataSekolah);
+  };
   const TableKelas = ({ rows }) => {
     return (
       <Table aria-label="simple table">
@@ -166,36 +191,36 @@ function Pengaturan() {
       </Table>
     );
   };
-  const TableCoy = ({ rows }) => {
-    return (
-      <Table aria-label="simple table">
-        <TableBody>
-          {rows.map((_row) => (
-            <TableRow key={_row.nama}>
-              <TableCell component="th" scope="row">
-                {_row.nama}
-              </TableCell>
-              <TableCell align="right">
-                {/* <IconButton aria-label="delete" size="small">
-                  <EditIcon fontSize="inherit" color="warning" />
-                </IconButton> */}
-                <IconButton aria-label="delete" size="small">
-                  <DeleteIcon fontSize="inherit" color="error" />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    );
-  };
+  // const TableCoy = ({ rows }) => {
+  //   return (
+  //     <Table aria-label="simple table">
+  //       <TableBody>
+  //         {rows.map((_row) => (
+  //           <TableRow key={_row.nama}>
+  //             <TableCell component="th" scope="row">
+  //               {_row.nama}
+  //             </TableCell>
+  //             <TableCell align="right">
+  //               {/* <IconButton aria-label="delete" size="small">
+  //                 <EditIcon fontSize="inherit" color="warning" />
+  //               </IconButton> */}
+  //               <IconButton aria-label="delete" size="small">
+  //                 <DeleteIcon fontSize="inherit" color="error" />
+  //               </IconButton>
+  //             </TableCell>
+  //           </TableRow>
+  //         ))}
+  //       </TableBody>
+  //     </Table>
+  //   );
+  // };
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox pb={3}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6} lg={4}>
+          {/* <Grid item xs={12} md={6} lg={4}>
             <Card>
               <MDBox sx={{ display: "flex", flexDirection: "column" }} alignItems="center" p={3}>
                 <MDTypography variant="h6" gutterBottom>
@@ -207,8 +232,8 @@ function Pengaturan() {
                 <TableCoy rows={row} />
               </MDBox>
             </Card>
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          </Grid> */}
+          <Grid item xs={12} md={6}>
             <Card>
               <MDBox sx={{ display: "flex", flexDirection: "column" }} alignItems="center" p={3}>
                 <MDTypography variant="h6" gutterBottom>
@@ -221,7 +246,7 @@ function Pengaturan() {
               </MDBox>
             </Card>
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={6}>
             <Card>
               <MDBox
                 sx={{
@@ -240,6 +265,8 @@ function Pengaturan() {
                   id="outlined-basic"
                   label="Nama Sekolah"
                   variant="outlined"
+                  value={dataSekolah.namaSekolah}
+                  onChange={(e) => editSekolah(e, "namaSekolah")}
                 />
                 <TextField
                   sx={{ mb: 1 }}
@@ -247,6 +274,8 @@ function Pengaturan() {
                   id="outlined-basic"
                   label="Email"
                   variant="outlined"
+                  value={dataSekolah.email}
+                  onChange={(e) => editSekolah(e, "email")}
                 />
                 <TextField
                   sx={{ mb: 1 }}
@@ -254,6 +283,8 @@ function Pengaturan() {
                   id="outlined-basic"
                   label="Telepon"
                   variant="outlined"
+                  value={dataSekolah.telepon}
+                  onChange={(e) => editSekolah(e, "telepon")}
                 />
                 <TextField
                   sx={{ mb: 1 }}
@@ -261,8 +292,10 @@ function Pengaturan() {
                   id="outlined-basic"
                   label="Alamat"
                   variant="outlined"
+                  value={dataSekolah.alamatSekolah}
+                  onChange={(e) => editSekolah(e, "alamatSekolah")}
                 />
-                <MDButton fullWidth color="info">
+                <MDButton onClick={() => clickSekolah()} fullWidth color="info">
                   Simpan
                 </MDButton>
               </MDBox>
