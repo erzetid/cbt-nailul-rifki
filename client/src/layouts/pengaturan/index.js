@@ -53,13 +53,13 @@ function createData(name, content) {
   return { name, content };
 }
 
-const row = [
-  createData("Frozen yoghurt", 159),
-  createData("Ice cream sandwich", 237),
-  createData("Eclair", 262),
-  createData("Cupcake", 305),
-  createData("Gingerbread", 356),
-];
+// const row = [
+//   createData("Frozen yoghurt", 159),
+//   createData("Ice cream sandwich", 237),
+//   createData("Eclair", 262),
+//   createData("Cupcake", 305),
+//   createData("Gingerbread", 356),
+// ];
 
 const Alert = forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;

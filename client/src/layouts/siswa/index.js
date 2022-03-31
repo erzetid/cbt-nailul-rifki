@@ -79,17 +79,16 @@ function Siswa() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [nisn, setNisn] = useState("");
-  const [kelas, setKelas] = useState(null);
   const [nama, setNama] = useState("");
   const [barisSiswa, setBarisSiswa] = useState([]);
   const [openAlert, setOpenAlert] = useState(false);
+  const [kelas, setKelas] = useState(null);
   const [kelasSiswa, setKelasSiswa] = useState([]);
   useEffect(() => {
     const checkLogin = async () => {
       const auth = await dispatch(refreshToken());
       const _siswa = await dispatch(getSiswa());
       const _kelas = await dispatch(getKelas());
-      console.log(_kelas);
       setKelasSiswa(_kelas.payload.data);
       setBarisSiswa(setTable(_siswa.payload.data));
       if (auth.payload.status === "success") {

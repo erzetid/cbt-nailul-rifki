@@ -27,16 +27,39 @@ import MDTypography from "components/MDTypography";
 
 // Soft UI Dashboard Materail-UI example components
 import DataTable from "examples/Tables/DataTable";
+import { filterKelas } from "utils/jwtDecode";
 
-function Pengumuman() {
+function Pengumuman({ onClick, data, kelass, btnHapus }) {
   const { columns, rows } = {
     columns: [
       { Header: "judul", accessor: "judul", width: "10%", align: "left" },
       { Header: "isi", accessor: "isi", width: "45%", align: "left" },
       { Header: "kelas", accessor: "kelas", align: "center" },
+      { Header: "diperbarui", accessor: "diperbarui", align: "center" },
       { Header: "aksi", accessor: "aksi", align: "center" },
     ],
-    rows: [],
+    rows: data.map((x) => {
+      const { _id, judul, isi, diperbarui, kelas } = x;
+      return {
+        judul,
+        isi,
+        kelas: filterKelas(kelass, kelas),
+        diperbarui: <MDTypography sx={{ fontSize: "inherit" }}>{diperbarui}</MDTypography>,
+        aksi: (
+          <>
+            <Icon
+              key={_id}
+              sx={{ cursor: "pointer" }}
+              onClick={() => btnHapus(_id)}
+              color="error"
+              fontSize="small"
+            >
+              delete_forever
+            </Icon>
+          </>
+        ),
+      };
+    }),
   };
   const [menu, setMenu] = useState(null);
 
@@ -58,7 +81,7 @@ function Pengumuman() {
       open={Boolean(menu)}
       onClose={closeMenu}
     >
-      <MenuItem onClick={closeMenu}>Buat</MenuItem>
+      <MenuItem onClick={onClick}>Buat</MenuItem>
     </Menu>
   );
 

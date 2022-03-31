@@ -16,5 +16,6 @@ export const jwtDeccode = (token) => {
 export const filterKelas = (kelas, id) => {
   const _kelas = kelas.filter((x) => x._id === id);
 
-  return _kelas[0].nama;
+  if (_kelas.length) return _kelas[0].nama;
+  return null;
 };
