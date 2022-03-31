@@ -102,7 +102,7 @@ function Basic() {
                 fullWidth
               />
             </MDBox>
-            {message ? (
+            {message && message !== "Access Denied / Unauthorized request" ? (
               <MDBox mb={2}>
                 <Alert severity="warning">{message}</Alert>
               </MDBox>

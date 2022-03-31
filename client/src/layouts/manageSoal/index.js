@@ -33,13 +33,15 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Snackbar,
 } from "@mui/material";
+import MuiAlert from "@mui/material/Alert";
 import MDButton from "components/MDButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import RichEditorExample from "components/Draft/Draft";
 import MDInput from "components/MDInput";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { jwtDeccode } from "utils/jwtDecode";
 import { refreshToken } from "store/slice/authThunk";
@@ -47,7 +49,11 @@ import { getSoalById } from "store/slice/soalThunk";
 import { getPerSoalById } from "store/slice/soalThunk";
 import { editPertanyaan } from "store/slice/soalThunk";
 import { change } from "store/slice/draftJs";
+import { setJawaban } from "store/slice/soalThunk";
 
+const Alert = forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 const ManageSoal = () => {
   const [valueOpsi, setValueOpsi] = useState(null);
   const [btnAktif, setBtnAktif] = useState(null);
@@ -57,9 +63,10 @@ const ManageSoal = () => {
   const { token } = useSelector((state) => state.auth);
   const [perSoal, setPerSoal] = useState({ soal: "", pilihan: [], _id: "customId123" });
   const { value } = useSelector((state) => state.draftJs);
-  const [data, setData] = useState(value);
-
   const [searchParams, setSearchParams] = useSearchParams();
+  const [alerData, setAlerData] = useState({ msg: "", status: "" });
+  const [openAlert, setOpenAlert] = useState(false);
+
   useEffect(() => {
     const checkLogin = async () => {
       const auth = await dispatch(refreshToken());
@@ -87,6 +94,14 @@ const ManageSoal = () => {
     return result;
   };
 
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenAlert(false);
+  };
+
   const btnSoal = soal.dataSoal.map((item) => {
     return (
       <MDButton
@@ -107,23 +122,38 @@ const ManageSoal = () => {
   const clickBtnColor = async (e) => {
     await dispatch(refreshToken());
     const _perSoal = await dispatch(getPerSoalById(e.target.name));
-    console.log(_perSoal.payload.data.soal);
     dispatch(change(_perSoal.payload.data.soal));
     setPerSoal(_perSoal.payload.data);
     setBtnAktif(e.target.name);
+    setValueOpsi(_perSoal.payload.data.jawaban);
   };
-  const handleChangeOpsi = (event) => {
-    setValueOpsi(event.target.value);
+  const handleChangeOpsi = async (event) => {
+    const jawaban = event.target.value;
+    const _id = perSoal._id;
+    const _data = await dispatch(setJawaban({ _id, jawaban }));
+    setValueOpsi(jawaban);
+    setAlerData({ msg: _data.payload.message, status: _data.payload.status });
+    setOpenAlert(true);
   };
 
   const simpanSoal = async () => {
     await dispatch(refreshToken());
-    await dispatch(editPertanyaan({ pertanyaan: value, _id: btnAktif }));
+    const _data = await dispatch(
+      editPertanyaan({ pertanyaan: value, _id: btnAktif, pilihan: perSoal.pilihan })
+    );
+    setAlerData({ msg: _data.payload.message, status: _data.payload.status });
+    setOpenAlert(true);
+  };
+  const handleChange = (event, index, _id) => {
+    let _opsiInput = perSoal.pilihan;
+    _opsiInput[index] = { opsi: event.target.value, _id };
+    setPerSoal({ ...perSoal, pilihan: _opsiInput });
   };
 
-  const opsiSoal = perSoal.pilihan.map((x) => {
+  const opsiSoal = perSoal.pilihan.map((x, index) => {
     return (
       <RadioGroup
+        key={x._id}
         aria-labelledby="demo-controlled-radio-buttons-group"
         name="controlled-radio-buttons-group"
         value={valueOpsi}
@@ -137,8 +167,12 @@ const ManageSoal = () => {
           >
             <FormControlLabel value={x._id} control={<Radio />} label={x._id} />
           </AccordionSummary>
-          <AccordionDetails>
-            <MDInput fullWidth value={x.opsi} />
+          <AccordionDetails key={x._id}>
+            <MDInput
+              fullWidth
+              value={x.opsi}
+              onChange={(event) => handleChange(event, index, x._id)}
+            />
           </AccordionDetails>
         </Accordion>
       </RadioGroup>
@@ -156,11 +190,11 @@ const ManageSoal = () => {
                 <MDTypography variant="h6" gutterBottom>
                   {soal.nama}
                 </MDTypography>
-                <Grid container spacing={1}>
+                <Grid container key={perSoal._id} spacing={1}>
                   <Grid item xs={12}>
                     {btnSoal}
                   </Grid>
-                  <Grid key={perSoal._id} item xs={12} md={6}>
+                  <Grid item xs={12} md={6}>
                     <RichEditorExample />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -176,6 +210,11 @@ const ManageSoal = () => {
         </Grid>
       </MDBox>
       <Footer />
+      <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleCloseAlert}>
+        <Alert onClose={handleCloseAlert} severity={alerData.status} sx={{ width: "100%" }}>
+          {alerData.msg}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 };

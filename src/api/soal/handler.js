@@ -162,7 +162,12 @@ export default class SoalHandler extends BaseHandler {
 
   async edipertanyaanHandler(req, res, _next) {
     try {
-      const { _id, pertanyaan } = req.body;
+      const { _id, pertanyaan, pilihan } = req.body;
+      if (!pilihan || !Array.isArray(pilihan) || !pilihan.length)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Pilihan ganda tidak boleh ada yang kosong!",
+        });
       if (!mongoose.isValidObjectId(_id))
         return super.render(res, 400, {
           status: "error",
@@ -175,7 +180,11 @@ export default class SoalHandler extends BaseHandler {
           message: "Pertanyaan tidak boleh kosong!",
         });
 
-      const updatePertanyaan = await soal.editPertanyaan(_id, pertanyaan);
+      const updatePertanyaan = await soal.editPertanyaan(
+        _id,
+        pertanyaan,
+        pilihan
+      );
       if (!updatePertanyaan)
         return super.render(res, 400, {
           status: "error",
@@ -260,7 +269,7 @@ export default class SoalHandler extends BaseHandler {
 
       return super.render(res, 200, {
         status: "success",
-        message: "Jawaban berhasil diedit!",
+        message: "Jawaban berhasil dipilih!",
       });
     } catch (error) {
       console.log(error);
