@@ -31,16 +31,20 @@ import LogAktifitas from "layouts/dashboard/components/LogAktifitas";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { refreshToken } from "store/slice/authThunk";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { jwtDeccode } from "../../utils/jwtDecode";
+import { getSiswa } from "store/slice/siswaThunk";
 
 function Dashboard() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [jmlSiswa, setJmlSiswa] = useState(0);
 
   useEffect(() => {
     const checkLogin = async () => {
       const auth = await dispatch(refreshToken());
+      const { payload: siswa } = await dispatch(getSiswa());
+      setJmlSiswa(siswa.data.length);
       if (auth.payload.status === "success") {
         const jwt = jwtDeccode(auth.payload.token);
         if (jwt.role !== "admin") {
@@ -61,7 +65,7 @@ function Dashboard() {
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
-              <ComplexStatisticsCard color="dark" icon="person" title="Siswa" count={281} />
+              <ComplexStatisticsCard color="dark" icon="person" title="Siswa" count={jmlSiswa} />
             </MDBox>
           </Grid>
           <Grid item xs={12} md={6} lg={4}>

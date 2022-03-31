@@ -14,7 +14,7 @@ Coded by www.creative-tim.com
 */
 
 // @mui material components
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 
@@ -43,16 +43,22 @@ import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
 import { refreshToken } from "store/slice/authThunk";
 import { jwtDeccode } from "utils/jwtDecode";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { getSoal } from "store/slice/soalThunk";
 
 function Soal() {
   const [menu, setMenu] = useState(null);
   const [dialogSoal, setDialogSoal] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { token } = useSelector((state) => state.auth);
+
+  const [soals, setSoals] = useState([]);
   useEffect(() => {
     const checkLogin = async () => {
       const auth = await dispatch(refreshToken());
+      const soal = await dispatch(getSoal());
+      setSoals(soal.payload.data);
       if (auth.payload.status === "success") {
         const jwt = jwtDeccode(auth.payload.token);
         if (jwt.role !== "admin") {
@@ -64,8 +70,7 @@ function Soal() {
       }
     };
     checkLogin();
-  }, []);
-
+  }, [token]);
   const IdSoal = ({ id }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
       <MDTypography variant="button" fontWeight="medium" ml={1} lineHeight={1}>
@@ -81,17 +86,25 @@ function Soal() {
       { Header: "Diperbarui", accessor: "diperbarui", align: "center" },
       { Header: "aksi", accessor: "aksi", align: "center" },
     ],
-    rows: [
-      {
-        kodeSoal: <IdSoal id={"62054fced9d1b9d18bed6394"} />,
-        namaSoal: "Matematika XII TSM2",
-        jumlahSoal: <MDBadge badgeContent="20 butir" size="xs" container />,
-        diperbarui: <MDTypography sx={{ fontSize: "inherit" }}>20/10/2022 19:20</MDTypography>,
+    rows: soals.map((x) => {
+      const { _id, nama, jumlah, diperbarui } = x;
+
+      return {
+        kodeSoal: (
+          <MDBox display="flex" alignItems="center" lineHeight={1}>
+            <MDTypography variant="button" fontWeight="medium" ml={1} lineHeight={1}>
+              {_id}
+            </MDTypography>
+          </MDBox>
+        ),
+        namaSoal: nama,
+        jumlahSoal: <MDBadge badgeContent={jumlah + " butir"} size="xs" container />,
+        diperbarui: <MDTypography sx={{ fontSize: "inherit" }}>{diperbarui}</MDTypography>,
         aksi: (
           <>
             <Icon
               sx={{ cursor: "pointer", mr: 1 }}
-              onClick={() => navigate("/manage_soal")}
+              onClick={() => navigate("/manage_soal?id_soal=" + _id)}
               color="success"
               fontSize="small"
             >
@@ -102,24 +115,8 @@ function Soal() {
             </Icon>
           </>
         ),
-      },
-      {
-        kodeSoal: <IdSoal id={"62054fced9d1b9d18be5555"} />,
-        namaSoal: "Bahas Indonesia XII TSM2",
-        jumlahSoal: <MDBadge badgeContent="20 butir" size="xs" container />,
-        diperbarui: <MDTypography sx={{ fontSize: "inherit" }}>21/10/2022 19:20</MDTypography>,
-        aksi: (
-          <>
-            <Icon sx={{ cursor: "pointer", mr: 1 }} color="success" fontSize="small">
-              visibility
-            </Icon>
-            <Icon sx={{ cursor: "pointer" }} color="error" fontSize="small">
-              delete_forever
-            </Icon>
-          </>
-        ),
-      },
-    ],
+      };
+    }),
   };
 
   const openDialogSoal = () => {

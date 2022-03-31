@@ -38,134 +38,33 @@ import MDButton from "components/MDButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import RichEditorExample from "components/Draft/Draft";
 import MDInput from "components/MDInput";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { jwtDeccode } from "utils/jwtDecode";
 import { refreshToken } from "store/slice/authThunk";
-
-const apiContoh = {
-  _id: "62054fced9d1b9d18bed6394",
-  dataSoal: [
-    {
-      no: 1,
-      _id: "62054fced9d1b9d18bed6395",
-    },
-    {
-      no: 2,
-      _id: "62054fced9d1b9d18bed639b",
-    },
-    {
-      no: 3,
-      _id: "62054fced9d1b9d18bed63a1",
-    },
-    {
-      no: 4,
-      _id: "62054fced9d1b9d18bed63a7",
-    },
-    {
-      no: 5,
-      _id: "62054fced9d1b9d18bed63ad",
-    },
-    {
-      no: 6,
-      _id: "62054fced9d1b9d18bed63b3",
-    },
-    {
-      no: 7,
-      _id: "62054fced9d1b9d18bed63b9",
-    },
-    {
-      no: 8,
-      _id: "62054fced9d1b9d18bed63bf",
-    },
-    {
-      no: 9,
-      _id: "62054fced9d1b9d18bed63c5",
-    },
-    {
-      no: 10,
-      _id: "62054fced9d1b9d18bed63cb",
-    },
-    {
-      no: 11,
-      _id: "62054fced9d1b9d18bed63d1",
-    },
-    {
-      no: 12,
-      _id: "62054fced9d1b9d18bed63d7",
-    },
-    {
-      no: 13,
-      _id: "62054fced9d1b9d18bed63dd",
-    },
-    {
-      no: 14,
-      _id: "62054fced9d1b9d18bed63e3",
-    },
-    {
-      no: 15,
-      _id: "62054fced9d1b9d18bed63e9",
-    },
-    {
-      no: 16,
-      _id: "62054fced9d1b9d18bed63ef",
-    },
-    {
-      no: 17,
-      _id: "62054fced9d1b9d18bed63f5",
-    },
-    {
-      no: 18,
-      _id: "62054fced9d1b9d18bed63fb",
-    },
-    {
-      no: 19,
-      _id: "62054fced9d1b9d18bed6401",
-    },
-    {
-      no: 20,
-      _id: "62054fced9d1b9d18bed6407",
-    },
-  ],
-};
-
-const contohPerSoal = {
-  soal: "Suatu tindakan yang membuat kita nyaman?",
-  pilihan: [
-    {
-      opsi: "Membaca",
-      _id: "62054fced9d1b9d18bed6396",
-    },
-    {
-      opsi: "Menulis",
-      _id: "62054fced9d1b9d18bed6397",
-    },
-    {
-      opsi: "Memancing",
-      _id: "62054fced9d1b9d18bed6398",
-    },
-    {
-      opsi: "Melamun",
-      _id: "62054fced9d1b9d18bed6399",
-    },
-    {
-      opsi: "Tidur",
-      _id: "62054fced9d1b9d18bed639a",
-    },
-  ],
-  jawaban: "",
-  _id: "62054fced9d1b9d18bed6395",
-};
+import { getSoalById } from "store/slice/soalThunk";
+import { getPerSoalById } from "store/slice/soalThunk";
+import { editPertanyaan } from "store/slice/soalThunk";
+import { change } from "store/slice/draftJs";
 
 const ManageSoal = () => {
   const [valueOpsi, setValueOpsi] = useState(null);
   const [btnAktif, setBtnAktif] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [soal, setSoal] = useState({ dataSoal: [], _id: "", nama: "" });
+  const { token } = useSelector((state) => state.auth);
+  const [perSoal, setPerSoal] = useState({ soal: "", pilihan: [], _id: "customId123" });
+  const { value } = useSelector((state) => state.draftJs);
+  const [data, setData] = useState(value);
+
+  const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     const checkLogin = async () => {
       const auth = await dispatch(refreshToken());
+      const _soal = await dispatch(getSoalById(searchParams.get("id_soal")));
+      setSoal(_soal.payload.data);
       if (auth.payload.status === "success") {
         const jwt = jwtDeccode(auth.payload.token);
         if (jwt.role !== "admin") {
@@ -177,9 +76,18 @@ const ManageSoal = () => {
       }
     };
     checkLogin();
-  }, []);
+  }, [token]);
+  const makeid = (length) => {
+    var result = "";
+    var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  };
 
-  const btnSoal = apiContoh.dataSoal.map((item) => {
+  const btnSoal = soal.dataSoal.map((item) => {
     return (
       <MDButton
         size="small"
@@ -196,15 +104,24 @@ const ManageSoal = () => {
     );
   });
 
-  const clickBtnColor = (e) => {
-    console.error(e.target.name);
+  const clickBtnColor = async (e) => {
+    await dispatch(refreshToken());
+    const _perSoal = await dispatch(getPerSoalById(e.target.name));
+    console.log(_perSoal.payload.data.soal);
+    dispatch(change(_perSoal.payload.data.soal));
+    setPerSoal(_perSoal.payload.data);
     setBtnAktif(e.target.name);
   };
   const handleChangeOpsi = (event) => {
     setValueOpsi(event.target.value);
   };
 
-  const opsiSoal = contohPerSoal.pilihan.map((x) => {
+  const simpanSoal = async () => {
+    await dispatch(refreshToken());
+    await dispatch(editPertanyaan({ pertanyaan: value, _id: btnAktif }));
+  };
+
+  const opsiSoal = perSoal.pilihan.map((x) => {
     return (
       <RadioGroup
         aria-labelledby="demo-controlled-radio-buttons-group"
@@ -237,25 +154,21 @@ const ManageSoal = () => {
             <Card>
               <MDBox sx={{ display: "flex", flexDirection: "column" }} alignItems="center" p={3}>
                 <MDTypography variant="h6" gutterBottom>
-                  Soal Matematika
+                  {soal.nama}
                 </MDTypography>
                 <Grid container spacing={1}>
                   <Grid item xs={12}>
                     {btnSoal}
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <RichEditorExample
-                      onChange={(e) => {
-                        console.log(e.target.value);
-                      }}
-                    />
+                  <Grid key={perSoal._id} item xs={12} md={6}>
+                    <RichEditorExample />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     {opsiSoal}
                   </Grid>
                 </Grid>
               </MDBox>
-              <MDButton sx={{ margin: 2 }} color="info">
+              <MDButton onClick={simpanSoal} sx={{ margin: 2 }} color="info">
                 Simpan
               </MDButton>
             </Card>

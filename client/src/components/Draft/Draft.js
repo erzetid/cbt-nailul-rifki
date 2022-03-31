@@ -5,19 +5,31 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Editor, EditorState, RichUtils, getDefaultKeyBinding, convertToRaw } from "draft-js";
 import { stateToHTML } from "draft-js-export-html";
 import "./css/example.css";
 import "./css/draft.css";
 import "./css/rich-editor.css";
+import { useDispatch, useSelector } from "react-redux";
+import { change } from "store/slice/draftJs";
+import { stateFromHTML } from "draft-js-import-html";
 
 const { useState, useRef, useCallback } = React;
 
 function RichEditorExample(props) {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const editor = useRef(null);
+  const dispatch = useDispatch();
 
+  const { value } = useSelector((state) => state.draftJs);
+
+  const [editorState, setEditorState] = useState(
+    EditorState.createWithContent(stateFromHTML(value))
+  );
+
+  useEffect(() => {
+    dispatch(change(stateToHTML(editorState.getCurrentContent())));
+  }, [editorState]);
+  const editor = useRef(null);
   const focus = () => {
     if (editor.current) editor.current.focus();
   };
@@ -25,6 +37,7 @@ function RichEditorExample(props) {
   const handleKeyCommand = useCallback(
     (command, editorState) => {
       const newState = RichUtils.handleKeyCommand(editorState, command);
+
       if (newState) {
         setEditorState(newState);
         return "handled";
@@ -59,7 +72,6 @@ function RichEditorExample(props) {
       className += " RichEditor-hidePlaceholder";
     }
   }
-  // console.log(stateToHTML(editorState.getCurrentContent()));
   return (
     <div className="RichEditor-root">
       <BlockStyleControls

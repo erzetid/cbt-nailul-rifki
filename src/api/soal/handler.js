@@ -88,7 +88,7 @@ export default class SoalHandler extends BaseHandler {
         return { no, _id };
       });
 
-      const final = { _id: data._id, dataSoal };
+      const final = { _id: data._id, nama: data.nama, dataSoal };
       return super.render(res, 200, {
         status: "success",
         message: "Data soal ditemukan!",
