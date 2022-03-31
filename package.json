@@ -9,12 +9,13 @@
   "license": "MIT",
   "scripts": {
     "start": "NODE_ENV=production node dist/main.cjs",
-    "client": "npm start --prefix client",
+    "admin": "npm start --prefix admin",
+    "siswa": "npm start --prefix siswa",
     "server": "nodemon app.js",
-    "test": "concurrently \"jest --watch --verbose\" \"npm run test --prefix client\"",
-    "dev": "export NODE_ENV=development && concurrently \"nodemon\" \"npm run client\"",
+    "test": "concurrently \"jest --watch --verbose\" \"npm run test --prefix admin\"",
+    "dev": "export NODE_ENV=development && concurrently \"nodemon\" \"npm run admin\"",
     "build:server": "webpack --mode production",
-    "build:all": "rm -rf dist/ && concurrently \"webpack --mode production\" \"npm run build --prefix client\"",
+    "build:all": "rm -rf dist/ && concurrently \"webpack --mode production\" \"npm run build --prefix admin\"",
     "password": "node password.js"
   },
   "dependencies": {
