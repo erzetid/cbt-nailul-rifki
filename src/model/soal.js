@@ -36,12 +36,13 @@ export default class Soals {
     return query;
   }
 
-  async editPertanyaan(_idButirSoal, soal) {
+  async editPertanyaan(_idButirSoal, soal, pilihan) {
     const query = await this.service.findOneAndUpdate(
       { "butir._id": _idButirSoal },
       {
         $set: {
           "butir.$.soal": soal,
+          "butir.$.pilihan": pilihan,
         },
       },
       { new: true }
