@@ -20,6 +20,7 @@ import Card from "@mui/material/Card";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
+import MuiAlert from "@mui/material/Alert";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -32,22 +33,57 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   Icon,
+  InputLabel,
   Menu,
   MenuItem,
+  Select,
+  Snackbar,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import DataTable from "examples/Tables/DataTable";
 import MDBadge from "components/MDBadge";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { refreshToken } from "store/slice/authThunk";
-import { jwtDeccode } from "utils/jwtDecode";
+import { jwtDeccode, filterKelas } from "utils/jwtDecode";
+import { getUjian, postUjian } from "store/slice/ujianThunk";
+import { getKelas } from "store/slice/kelasThunk";
+import AdapterDateFns from "@mui/lab/AdapterDateFns";
+import LocalizationProvider from "@mui/lab/LocalizationProvider";
+import MobileDateTimePicker from "@mui/lab/MobileDateTimePicker";
+import { getSoal } from "store/slice/soalThunk";
+import { deleteUjianById } from "store/slice/ujianThunk";
+import { nonaktifkanUjian } from "store/slice/ujianThunk";
+import { actifkanUjian } from "store/slice/ujianThunk";
+
+const Alert = forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
+const emptyUjian = {
+  nama: "",
+  idKelas: "",
+  idSoal: "",
+  durasi: 0,
+  status: "",
+  waktuMulai: new Date().toISOString(),
+  _id: "",
+};
 
 function Ujian() {
   const [menu, setMenu] = useState(null);
   const [dialogSoal, setDialogSoal] = useState(false);
+  const { token } = useSelector((state) => state.auth);
+  const [kelasSiswa, setKelasSiswa] = useState([{ _id: "", nama: "" }]);
+  const [waktuUjian, setWaktuUjian] = useState(new Date());
+  const [openAlert, setOpenAlert] = useState(false);
+  const [alerData, setAlerData] = useState({ msg: "", status: "" });
+  const [ujianArr, setUjianArr] = useState([]);
+  const [soal, setSoal] = useState([]);
+  const [formTambahUjian, setFormTambahUjian] = useState(emptyUjian);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   useEffect(() => {
@@ -59,12 +95,56 @@ function Ujian() {
           console.log(jwt);
           return navigate("/login");
         }
+        const _ujian = await dispatch(getUjian());
+        const _kelas = await dispatch(getKelas());
+        const _soal = await dispatch(getSoal());
+        setKelasSiswa(_kelas.payload.data);
+        setSoal(_soal.payload.data);
+        setUjianArr(_ujian.payload.data);
       } else {
         return navigate("/login");
       }
     };
     checkLogin();
-  }, []);
+  }, [token, openAlert]);
+
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenAlert(false);
+  };
+
+  const handleSimpan = async () => {
+    await dispatch(refreshToken());
+    const _tambah = await dispatch(postUjian(formTambahUjian));
+    setAlerData({ msg: _tambah.payload.message, status: _tambah.payload.status });
+    setOpenAlert(true);
+    if (_tambah.payload.status === "success") setDialogSoal(false);
+  };
+  const handleHpsUjian = async (_id) => {
+    await dispatch(refreshToken());
+    const _hapus = await dispatch(deleteUjianById(_id));
+    setAlerData({ msg: _hapus.payload.message, status: _hapus.payload.status });
+    setOpenAlert(true);
+    if (_hapus.payload.status === "success") setDialogSoal(false);
+  };
+  const handleOnUjian = async (_id) => {
+    await dispatch(refreshToken());
+    const _on = await dispatch(actifkanUjian(_id));
+    setAlerData({ msg: _on.payload.message, status: _on.payload.status });
+    setOpenAlert(true);
+    if (_on.payload.status === "success") setDialogSoal(false);
+  };
+
+  const handleOffUjian = async (_id) => {
+    await dispatch(refreshToken());
+    const _off = await dispatch(nonaktifkanUjian(_id));
+    setAlerData({ msg: _off.payload.message, status: _off.payload.status });
+    setOpenAlert(true);
+    if (_off.payload.status === "success") setDialogSoal(false);
+  };
   const NamaUjian = ({ nama }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
       <MDTypography variant="button" fontWeight="medium" ml={1} lineHeight={1}>
@@ -81,42 +161,44 @@ function Ujian() {
       { Header: "waktu", accessor: "waktu", align: "center" },
       { Header: "aksi", accessor: "aksi", align: "right" },
     ],
-    rows: [
-      {
-        namaUjian: <NamaUjian nama={"Ujian Matematika XII TSM2"} />,
-        kelas: "XII TSM2",
-        durasi: "90 Menit",
-        status: <MDBadge badgeContent="aktif" size="xs" container />,
-        waktu: <MDTypography sx={{ fontSize: "inherit" }}>20/10/2022 19:20-20.20</MDTypography>,
+    rows: ujianArr.map((x) => {
+      const { _id, nama, idKelas, idSoal, durasi, status, waktuMulai } = x;
+      return {
+        namaUjian: <NamaUjian nama={nama} />,
+        kelas: filterKelas(kelasSiswa, idKelas),
+        durasi: `${durasi} menit`,
+        status: (
+          <MDBadge
+            badgeContent={status}
+            size="xs"
+            color={status === "aktif" ? "info" : "secondary"}
+            container
+          />
+        ),
+        waktu: <MDTypography sx={{ fontSize: "inherit" }}>{waktuMulai}</MDTypography>,
         aksi: (
           <>
-            <MDButton size="small" variant="contained" color="secondary" sx={{ marginRight: 0.2 }}>
-              OFF
+            <MDButton
+              size="small"
+              variant="contained"
+              color={status === "aktif" ? "warning" : "success"}
+              sx={{ marginRight: 0.2 }}
+              onClick={status === "aktif" ? () => handleOffUjian(_id) : () => handleOnUjian(_id)}
+            >
+              {status === "aktif" ? "OFF" : "ON"}
             </MDButton>
-            <MDButton size="small" variant="contained" color="primary">
+            <MDButton
+              size="small"
+              onClick={() => handleHpsUjian(_id)}
+              variant="contained"
+              color="error"
+            >
               Hapus
             </MDButton>
           </>
         ),
-      },
-      {
-        namaUjian: <NamaUjian nama={"Ujian Bahas Indonesia XII TSM2"} />,
-        kelas: "XII TSM2",
-        durasi: "120 Menit",
-        status: <MDBadge badgeContent="nonaktif" color="primary" size="xs" container />,
-        waktu: <MDTypography sx={{ fontSize: "inherit" }}>21/10/2022 19:20-21.20</MDTypography>,
-        aksi: (
-          <>
-            <MDButton size="small" variant="contained" color="secondary" sx={{ marginRight: 0.2 }}>
-              ON
-            </MDButton>
-            <MDButton size="small" variant="contained" color="primary">
-              Hapus
-            </MDButton>
-          </>
-        ),
-      },
-    ],
+      };
+    }),
   };
 
   const openDialogSoal = () => {
@@ -128,6 +210,13 @@ function Ujian() {
 
   const openMenu = ({ currentTarget }) => setMenu(currentTarget);
   const closeMenu = () => setMenu(null);
+
+  const handleChange = (val, name) => {
+    console.log(val);
+    let _formUjian = { ...formTambahUjian };
+    _formUjian[`${name}`] = val;
+    setFormTambahUjian(_formUjian);
+  };
 
   const renderMenu = (
     <Menu
@@ -187,7 +276,7 @@ function Ujian() {
       </MDBox>
       <Footer />
       <Dialog fullWidth maxWidth={"xs"} open={dialogSoal} onClose={closeDialogSoal}>
-        <DialogTitle>Optional sizes</DialogTitle>
+        <DialogTitle>Tambah Ujian</DialogTitle>
         <DialogContent>
           <MDBox
             fullWidth
@@ -199,15 +288,70 @@ function Ujian() {
               mt: 1,
             }}
           >
-            <MDInput label="Nama Soal" error={true} sx={{ mb: 1 }} />
-            <MDInput label="Jumlah" type="number" error={true} />
+            <MDInput
+              value={formTambahUjian.nama}
+              onChange={(e) => handleChange(e.target.value, "nama")}
+              label="Nama Ujian"
+              sx={{ mb: 1 }}
+            />
+            <MDInput
+              value={formTambahUjian.durasi}
+              onChange={(e) => handleChange(parseInt(e.target.value), "durasi")}
+              label="Durasi (menit)"
+              type="number"
+              sx={{ mb: 1 }}
+            />
+            <LocalizationProvider dateAdapter={AdapterDateFns} sx={{ mb: 1 }}>
+              <MobileDateTimePicker
+                renderInput={(props) => <MDInput {...props} />}
+                label="Jadwal"
+                value={new Date(formTambahUjian.waktuMulai)}
+                onChange={(newValue) => {
+                  handleChange(newValue.toISOString(), "waktuMulai");
+                }}
+              />
+            </LocalizationProvider>
+            <FormControl margin="dense" variant="standard" sx={{ mb: 1 }} fullWidth>
+              <InputLabel id="demo-simple-select-standard-label">Kelas</InputLabel>
+              <Select
+                labelId="demo-simple-select-standard-label"
+                id="demo-simple-select-standard"
+                label="Kelas"
+                value={formTambahUjian.idKelas}
+                onChange={(e) => handleChange(e.target.value, "idKelas")}
+              >
+                {kelasSiswa.map((k) => {
+                  return <MenuItem value={k._id}>{k.nama}</MenuItem>;
+                })}
+              </Select>
+            </FormControl>
+
+            <FormControl margin="dense" variant="standard" sx={{ mb: 1 }} fullWidth>
+              <InputLabel id="demo-simple-select-standard">Soal</InputLabel>
+              <Select
+                labelId="demo-simple-select-standard"
+                id="demo-simple-select-standard"
+                label="Soal"
+                value={formTambahUjian.idSoal}
+                onChange={(e) => handleChange(e.target.value, "idSoal")}
+              >
+                {soal.map((s) => {
+                  return <MenuItem value={s._id}>{s.nama}</MenuItem>;
+                })}
+              </Select>
+            </FormControl>
           </MDBox>
         </DialogContent>
         <DialogActions>
           <MDButton onClick={closeDialogSoal}>Tutup</MDButton>
-          <MDButton onClick={closeDialogSoal}>Simpan</MDButton>
+          <MDButton onClick={handleSimpan}>Simpan</MDButton>
         </DialogActions>
       </Dialog>
+      <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleCloseAlert}>
+        <Alert onClose={handleCloseAlert} severity={alerData.status} sx={{ width: "100%" }}>
+          {alerData.msg}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

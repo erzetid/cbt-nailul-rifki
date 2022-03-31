@@ -109,7 +109,7 @@ export default class SoalHandler extends BaseHandler {
       if (!mongoose.isValidObjectId(_id))
         return super.render(res, 400, {
           status: "error",
-          message: "Id per soal tidak ditemukan!",
+          message: "Id soal tidak ditemukan!",
         });
       const checkSoal = await soal.getById(_id);
       if (!checkSoal) {
