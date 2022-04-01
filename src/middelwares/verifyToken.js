@@ -62,3 +62,7 @@ export const verifyTokenSiswa = (req, res, next) => {
     });
   }
 };
+export const decodeJwt = (jwtToken) => {
+  const decode = jwt.decode(jwtToken);
+  console.log(decode);
+};

@@ -1,35 +1,24 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const logSchema = new mongoose.Schema({
-  siswa: String,
-  status: String,
-  diperbarui: Date
+  idUjian: String,
+  namaUjian: String,
+  idSiswa: String,
+  namaSiswa: String,
 });
 
-const logService = mongoose.model('logs', logSchema);
+const logService = mongoose.model("logs", logSchema);
 
 export default class Logs {
-  service = logService;
-
-  async masuk(siswa) {
-    const logBaru = new this.service({ siswa, status: 'login' });
-    const query = await logBaru.save();
-
-    return query;
+  async save(data) {
+    return await new logService({ ...data }).save();
   }
 
-  async cekMasuk(siswa) {
-    const query = await this.service.find({ siswa, status: 'login' });
-
-    return query;
+  async getByIdSiswaAndIdUjian(idSiswa, idUjian) {
+    return await logService.findOne({ idSiswa, idUjian });
   }
 
-  async keluar(siswa) {
-    const query = await this.service.updateMany(
-      { siswa },
-      { $set: { status: 'logout' } }
-    );
-
-    return query;
+  async deleteById(_id) {
+    return await logService.findByIdAndDelete(_id);
   }
 }

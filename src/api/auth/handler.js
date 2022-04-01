@@ -29,10 +29,19 @@ export default class AuthHandler extends BaseHandler {
 
       const checkUsername = await user.getById(verifyRefresToken.user);
 
-      const payload = {
-        user: checkUsername._id,
-        role: checkUsername.role,
-      };
+      let payload;
+      if (!checkUsername.idUser) {
+        payload = {
+          user: checkUsername._id,
+          role: checkUsername.role,
+        };
+      } else {
+        payload = {
+          user: checkUsername._id,
+          idUser: checkUsername.idUser,
+          role: checkUsername.role,
+        };
+      }
 
       const token = jwt.sign(payload, JWT_SECRET, {
         expiresIn: "7d",
@@ -84,11 +93,19 @@ export default class AuthHandler extends BaseHandler {
           message: "Passwor salah!",
         });
       }
-
-      const payload = {
-        user: checkUsername._id,
-        role: checkUsername.role,
-      };
+      let payload;
+      if (!checkUsername.idUser) {
+        payload = {
+          user: checkUsername._id,
+          role: checkUsername.role,
+        };
+      } else {
+        payload = {
+          user: checkUsername._id,
+          idUser: checkUsername.idUser,
+          role: checkUsername.role,
+        };
+      }
 
       const token = jwt.sign(payload, JWT_SECRET, {
         expiresIn: "7d",

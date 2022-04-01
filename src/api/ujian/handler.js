@@ -1,11 +1,20 @@
 import Ujian from "../../model/ujian.js";
+import Logs from "../../model/log.js";
 import BaseHandler from "../default.js";
 import mongoose from "mongoose";
 import Tokens from "../../model/token.js";
+import Siswas from "../../model/siswa.js";
+import Soals from "../../model/soal.js";
+import Scores from "../../model/score.js";
+import jwt from "jsonwebtoken";
 
 export default class UjianHandler extends BaseHandler {
   service = new Ujian();
   tokenService = new Tokens();
+  siswaService = new Siswas();
+  soalService = new Soals();
+  logs = new Logs();
+  scoreService = new Scores();
   constructor() {
     super();
     this.getHandler = this.getHandler.bind(this);
@@ -15,6 +24,7 @@ export default class UjianHandler extends BaseHandler {
     this.hapusHandler = this.hapusHandler.bind(this);
     this.getByIdHandler = this.getByIdHandler.bind(this);
     this.getToken = this.getToken.bind(this);
+    this.mulaiHandler = this.mulaiHandler.bind(this);
   }
   async getHandler(_req, res, _next) {
     try {
@@ -199,27 +209,117 @@ export default class UjianHandler extends BaseHandler {
 
   async mulaiHandler(req, res) {
     try {
-      const { idUjian, idSiswa, namaUjian, namaSiswa } = req.params;
+      const { idUjian, token } = req.body;
+      if (typeof token !== "string" || token === "")
+        return super.render(res, 400, {
+          status: "error",
+          message: "Token tidak boleh kosong!",
+        });
+
       if (!mongoose.isValidObjectId(idUjian))
         return super.render(res, 400, {
           status: "error",
           message: "Id ujian tidak boleh kosong!",
         });
-      if (!mongoose.isValidObjectId(idSiswa))
-        return super.render(res, 400, {
+
+      let jwtToken = req.headers.authorization;
+      if (!jwtToken)
+        return res.status(401).json({
           status: "error",
-          message: "Id ujian tidak boleh kosong!",
+          message: "Access Denied / Unauthorized request",
+        });
+      jwtToken = jwtToken.split(" ")[1];
+      const { idUser: idSiswa } = jwt.decode(jwtToken);
+
+      const { nama: namaSiswa, kelas: kelasSiswa } =
+        await this.siswaService.getById(idSiswa);
+      if (!namaSiswa)
+        return res.status(400).json({
+          status: "error",
+          message: "Siswa tidak ditemukan!",
         });
 
-      // const data = await this.service.getById(idUjian);
-      // if (!data)
-      //   return super.render(res, 400, {
-      //     status: "error",
-      //     message: "Ujian tidak ditemukan!",
-      //   });
+      const {
+        nama: namaUjian,
+        idKelas: kelasUjian,
+        status,
+        idSoal,
+      } = await this.service.getById(idUjian);
+      if (!namaUjian)
+        return res.status(400).json({
+          status: "error",
+          message: "Ujian tidak ditemukan!",
+        });
+      if (kelasUjian !== kelasSiswa)
+        return res.status(400).json({
+          status: "error",
+          message: "Kamu tidak diperbolehkan untuk mengerjakan ujian ini!",
+        });
+      if (status !== "aktif")
+        return res.status(400).json({
+          status: "error",
+          message: "Ujian belum diaktifkan!",
+        });
+      const checkToken = await this.tokenService.check(token);
+      if (!checkToken)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Token tidak valid!",
+        });
+      const checkLog = await this.logs.getByIdSiswaAndIdUjian(idSiswa, idUjian);
+      if (checkLog)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Siswa sedang mengerjakan ujian!",
+        });
+
+      const dataSoal = await this.soalService.getById(idSoal);
+      if (!dataSoal)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Soal ujian tidak ditemukan!",
+        });
+      const jawaban = dataSoal.butir.map((x) => {
+        return { idPertanyaan: x._id.toString(), jawaban: "" };
+      });
+
+      const checkScore = await this.scoreService.getByIdSiswaAndIdUjian(
+        idSiswa,
+        idUjian
+      );
+      const waktuMulai = new Date().getTime();
+      if (!checkScore) {
+        if (
+          !(await this.scoreService.save({
+            idSiswa,
+            idSoal,
+            idUjian,
+            waktuMulai,
+            waktuSelesai: 0,
+            status: "aktif",
+            jawaban,
+          }))
+        )
+          return super.render(res, 400, {
+            status: "success",
+            message: "Mulai ujian error!",
+          });
+      }
+      if (
+        !(await this.logs.save({
+          idUjian,
+          idSiswa,
+          namaUjian,
+          namaSiswa,
+        }))
+      )
+        return res.status(400).json({
+          status: "error",
+          message: "Maaf ada yang salah!",
+        });
       return super.render(res, 200, {
         status: "success",
-        message: "Log masuk berhasil!",
+        message: "Berhasil!",
       });
     } catch (error) {
       console.log(error);

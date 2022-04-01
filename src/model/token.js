@@ -19,6 +19,10 @@ export default class Tokens {
     }
     return await new tokenService({ token }).save();
   }
+
+  async check(token) {
+    return await tokenService.findOne({ token });
+  }
   makeid() {
     const length = 5;
     let result = "";
