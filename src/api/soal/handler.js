@@ -82,6 +82,7 @@ export default class SoalHandler extends BaseHandler {
         });
       }
 
+      // TODO sebagai acuan untuk membuat nomor dengan array
       const dataSoal = data.butir.map((x, index) => {
         const { _id } = x;
         const no = index + 1;

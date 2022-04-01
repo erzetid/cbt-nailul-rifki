@@ -26,7 +26,7 @@ export default class Ujians {
   }
 
   async getById(_id) {
-    return await this.service.findById(_id);
+    return await this.service.findById(_id).lean();
   }
 
   async getAll() {

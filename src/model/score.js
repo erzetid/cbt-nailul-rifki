@@ -4,6 +4,7 @@ const scoreSchema = new mongoose.Schema({
   idSiswa: String,
   idSoal: String,
   idUjian: String,
+  durasi: Number,
   waktuMulai: Number,
   waktuSelesai: Number,
   status: String,
@@ -21,5 +22,26 @@ export default class Scores {
     return await scoreService.findOne({ idSiswa, idUjian });
   }
 
-  async updateJawaban(idScore, idPertanyaan, jawaban) {}
+  async getScoresByIdUjian(idUjian) {
+    return await scoreService.find({ idUjian }).lean();
+  }
+
+  async getById(_id) {
+    return await scoreService.findById(_id).lean();
+  }
+
+  async updateJawaban(idScore, idPertanyaan, jawaban) {
+    return await scoreService.findOneAndUpdate(
+      {
+        _id: mongoose.Types.ObjectId(idScore),
+        "jawaban.idPertanyaan": idPertanyaan,
+      },
+      {
+        $set: {
+          "jawaban.$.jawaban": jawaban,
+        },
+      },
+      { new: true }
+    );
+  }
 }

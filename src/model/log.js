@@ -18,7 +18,15 @@ export default class Logs {
     return await logService.findOne({ idSiswa, idUjian });
   }
 
+  async getAll() {
+    return await logService.find().lean();
+  }
+
   async deleteById(_id) {
     return await logService.findByIdAndDelete(_id);
+  }
+
+  async deleteByIdSiswaIdUjian(idSiswa, idUjian) {
+    return await logService.findOneAndDelete({ idSiswa, idUjian });
   }
 }
