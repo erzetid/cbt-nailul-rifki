@@ -9,6 +9,7 @@ router.post("/", verifyTokenAdmin, ujianHandler.postHandler);
 router.put("/aktifkan/:_id", verifyTokenAdmin, ujianHandler.actifHandler);
 router.put("/nonaktifkan/:_id", verifyTokenAdmin, ujianHandler.nonaktifHandler);
 router.delete("/:_id", verifyTokenAdmin, ujianHandler.hapusHandler);
+router.get("/create_token", verifyTokenAdmin, ujianHandler.getToken);
 router.get("/:_id", verifyTokenAdmin, ujianHandler.getByIdHandler);
 
 export default router;

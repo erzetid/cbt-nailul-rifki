@@ -1,9 +1,11 @@
 import Ujian from "../../model/ujian.js";
 import BaseHandler from "../default.js";
 import mongoose from "mongoose";
+import Tokens from "../../model/token.js";
 
 export default class UjianHandler extends BaseHandler {
   service = new Ujian();
+  tokenService = new Tokens();
   constructor() {
     super();
     this.getHandler = this.getHandler.bind(this);
@@ -12,6 +14,7 @@ export default class UjianHandler extends BaseHandler {
     this.nonaktifHandler = this.nonaktifHandler.bind(this);
     this.hapusHandler = this.hapusHandler.bind(this);
     this.getByIdHandler = this.getByIdHandler.bind(this);
+    this.getToken = this.getToken.bind(this);
   }
   async getHandler(_req, res, _next) {
     try {
@@ -183,6 +186,61 @@ export default class UjianHandler extends BaseHandler {
       return super.render(res, 200, {
         status: "success",
         message: "Ujian ditemukan!",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
+  async mulaiHandler(req, res) {
+    try {
+      const { idUjian, idSiswa, namaUjian, namaSiswa } = req.params;
+      if (!mongoose.isValidObjectId(idUjian))
+        return super.render(res, 400, {
+          status: "error",
+          message: "Id ujian tidak boleh kosong!",
+        });
+      if (!mongoose.isValidObjectId(idSiswa))
+        return super.render(res, 400, {
+          status: "error",
+          message: "Id ujian tidak boleh kosong!",
+        });
+
+      // const data = await this.service.getById(idUjian);
+      // if (!data)
+      //   return super.render(res, 400, {
+      //     status: "error",
+      //     message: "Ujian tidak ditemukan!",
+      //   });
+      return super.render(res, 200, {
+        status: "success",
+        message: "Log masuk berhasil!",
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
+  async getToken(_req, res) {
+    try {
+      const data = await this.tokenService.set();
+      if (!data)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Gagal memperbarui token gagal!",
+        });
+      return super.render(res, 200, {
+        status: "success",
+        message: "Token berhasil diperabrui!",
         data,
       });
     } catch (error) {
