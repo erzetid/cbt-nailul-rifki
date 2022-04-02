@@ -1,12 +1,15 @@
 import { Router } from "express";
 import KelasHandler from "./handler.js";
-import { verifyTokenAdmin } from "../../middelwares/verifyToken.js";
+import {
+  verifyTokenAdmin,
+  verifyTokenUmum,
+} from "../../middelwares/verifyToken.js";
 
 const kelasHandler = new KelasHandler();
 
 const router = Router();
 
-router.get("/", verifyTokenAdmin, kelasHandler.getHandler);
+router.get("/", verifyTokenUmum, kelasHandler.getHandler);
 router.post("/", verifyTokenAdmin, kelasHandler.postHandler);
 router.put("/", verifyTokenAdmin, kelasHandler.putHandler);
 

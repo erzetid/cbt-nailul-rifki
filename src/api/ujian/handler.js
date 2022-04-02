@@ -30,6 +30,8 @@ export default class UjianHandler extends BaseHandler {
     this.getLogsHandler = this.getLogsHandler.bind(this);
     this.getScoresByUjian = this.getScoresByUjian.bind(this);
     this.getPerSoalSiswa = this.getPerSoalSiswa.bind(this);
+    this.getByKelasSiswaHandler = this.getByKelasSiswaHandler.bind(this);
+    this.preTestHandler = this.preTestHandler.bind(this);
   }
   async getHandler(_req, res, _next) {
     try {
@@ -455,6 +457,65 @@ export default class UjianHandler extends BaseHandler {
     }
   }
 
+  async preTestHandler(req, res) {
+    try {
+      let jwtToken = req.headers.authorization;
+      const { idUjian } = req.params;
+      if (!mongoose.isValidObjectId(idUjian))
+        return super.render(res, 400, {
+          status: "error",
+          message: "Id ujian tidak boleh kosong!",
+        });
+      if (!jwtToken)
+        return res.status(401).json({
+          status: "error",
+          message: "Access Denied / Unauthorized request",
+        });
+      jwtToken = jwtToken.split(" ")[1];
+      const { idUser: idSiswa } = jwt.decode(jwtToken);
+      const checkUjian = await this.service.getById(idUjian);
+      if (!checkUjian)
+        return res.status(400).json({
+          status: "error",
+          message: "Ujian tidak ditemukan!",
+        });
+      const { nama: namaSoal, jumlah } = await this.soalService.getById(
+        checkUjian.idSoal
+      );
+      const checkSiswa = await this.siswaService.getById(idSiswa);
+      if (!checkSiswa)
+        return res.status(400).json({
+          status: "error",
+          message: "Kamu belum terdaftar!",
+        });
+      const { nama, kelas } = checkSiswa;
+      if (checkUjian.idKelas !== kelas)
+        return res.status(400).json({
+          status: "error",
+          message: "Kamu tidak punya akses ke ujian ini!",
+        });
+      return super.render(res, 200, {
+        status: "success",
+        message: "Berhasil!",
+        data: {
+          ujian: checkUjian.nama,
+          nama,
+          kelas,
+          durasi: checkUjian.durasi,
+          jadwal: checkUjian.waktuMulai,
+          soal: namaSoal,
+          jumlah,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
   async getLogsHandler(_req, res) {
     try {
       const data = await this.logs.getAll();
@@ -484,12 +545,12 @@ export default class UjianHandler extends BaseHandler {
       const data = await Promise.all(
         _data.map(async (x) => {
           const { idSiswa, idSoal, _id, waktuMulai, waktuSelesai, status } = x;
-          const { nama } = await this.siswaService.getById(idSiswa);
+          const checkSiswa = await this.siswaService.getById(idSiswa);
           const { nama: soal } = await this.soalService.getById(idSoal);
           const waktuSelesais = waktuSelesai === 0 ? waktuMulai : waktuSelesai;
 
           return {
-            nama,
+            nama: checkSiswa && checkSiswa.nama,
             soal,
             idScore: _id,
             waktuMulai: new Date(waktuMulai).toISOString(),
@@ -571,6 +632,31 @@ export default class UjianHandler extends BaseHandler {
         status: "success",
         message: "Soal berhasil ditemukan!",
         data: { soal, pilihan, _id },
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+  async getByKelasSiswaHandler(req, res, _next) {
+    try {
+      let jwtToken = req.headers.authorization;
+      if (!jwtToken)
+        return res.status(401).json({
+          status: "error",
+          message: "Access Denied / Unauthorized request",
+        });
+      jwtToken = jwtToken.split(" ")[1];
+      const { kelas } = jwt.decode(jwtToken);
+      const data = await this.service.getByKelasSiswa(kelas);
+
+      return super.render(res, 200, {
+        status: "success",
+        message: "Ujian by kelas siswa berhasil dirender!",
+        data,
       });
     } catch (error) {
       console.log(error);

@@ -29,6 +29,10 @@ export default class Ujians {
     return await this.service.findById(_id).lean();
   }
 
+  async getByKelasSiswa(idKelas) {
+    return await this.service.find({ idKelas }).lean();
+  }
+
   async getAll() {
     return await this.service.find().lean();
   }

@@ -49,7 +49,7 @@ export default class AuthHandler extends BaseHandler {
       }
 
       const token = jwt.sign(payload, JWT_SECRET, {
-        expiresIn: "10s",
+        expiresIn: "3600s",
       });
 
       const refreshTokenNew = jwt.sign(
@@ -115,7 +115,7 @@ export default class AuthHandler extends BaseHandler {
       }
 
       const token = jwt.sign(payload, JWT_SECRET, {
-        expiresIn: "10s",
+        expiresIn: "3600s",
       });
 
       const refreshToken = jwt.sign(

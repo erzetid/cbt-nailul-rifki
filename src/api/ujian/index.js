@@ -3,11 +3,13 @@ import UjianHandler from "./handler.js";
 import {
   verifyTokenAdmin,
   verifyTokenSiswa,
+  verifyTokenUmum,
 } from "../../middelwares/verifyToken.js";
 
 const ujianHandler = new UjianHandler();
 const router = Router();
-router.get("/", verifyTokenAdmin, ujianHandler.getHandler);
+// TODO verify get change admin
+router.get("/", verifyTokenUmum, ujianHandler.getHandler);
 router.post("/", verifyTokenAdmin, ujianHandler.postHandler);
 router.put("/aktifkan/:_id", verifyTokenAdmin, ujianHandler.actifHandler);
 router.put("/nonaktifkan/:_id", verifyTokenAdmin, ujianHandler.nonaktifHandler);
@@ -31,6 +33,8 @@ router.post(
   ujianHandler.getScoreSiswaHandler
 );
 router.post("/pertanyaan", verifyTokenSiswa, ujianHandler.getPerSoalSiswa);
+router.get("/siswa", verifyTokenSiswa, ujianHandler.getByKelasSiswaHandler);
+router.get("/pre_test/:idUjian", verifyTokenSiswa, ujianHandler.preTestHandler);
 router.get("/:_id", verifyTokenAdmin, ujianHandler.getByIdHandler);
 
 export default router;
