@@ -20,6 +20,19 @@ export default class Tokens {
     return await new tokenService({ token }).save();
   }
 
+  async get() {
+    const data = await tokenService.find();
+    let token;
+    if (!data.length) {
+      const _new = await new tokenService({ token: this.makeid() }).save();
+      console.log(_new);
+      token = _new.token;
+    } else {
+      token = data[0].token;
+    }
+    return token;
+  }
+
   async check(token) {
     return await tokenService.findOne({ token });
   }

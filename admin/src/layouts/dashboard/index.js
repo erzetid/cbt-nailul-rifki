@@ -29,7 +29,6 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 
 // Dashboard components
 import Pengumuman from "layouts/dashboard/components/Pengumuman";
-import LogAktifitas from "layouts/dashboard/components/LogAktifitas";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { refreshToken } from "store/slice/authThunk";
@@ -40,12 +39,24 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import { FormControl, InputLabel, MenuItem, Select, Snackbar, TextField } from "@mui/material";
+import {
+  Card,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Snackbar,
+  TextField,
+} from "@mui/material";
 import { getKelas } from "store/slice/kelasThunk";
 import { getPengumuman } from "store/slice/pengumumanThunk";
 import { getSoal } from "store/slice/soalThunk";
 import { postPengumuman } from "store/slice/pengumumanThunk";
 import { deletePengumuman } from "store/slice/pengumumanThunk";
+import MDTypography from "components/MDTypography";
+import { getTokenUjian } from "store/slice/ujianThunk";
+import { createTokenUjian } from "store/slice/ujianThunk";
+import { getUjian } from "store/slice/ujianThunk";
 
 const emptyPengumuman = {
   judul: "",
@@ -60,6 +71,7 @@ function Dashboard() {
   const dispatch = useDispatch();
   const [jmlSiswa, setJmlSiswa] = useState(0);
   const [jmlSoal, setJmlSoal] = useState(0);
+  const [jmlUjian, setJmlUjian] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [kelas, setKelas] = useState("");
   const [kelasSiswa, setKelasSiswa] = useState([{ _id: "", nama: "" }]);
@@ -68,6 +80,7 @@ function Dashboard() {
   const [formPengumuman, setFormPengumuman] = useState(emptyPengumuman);
   const [openAlert, setOpenAlert] = useState(false);
   const [alerData, setAlerData] = useState({ msg: "", status: "" });
+  const [tokenUjian, setTokenUjian] = useState("");
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -76,16 +89,20 @@ function Dashboard() {
       const _kelas = await dispatch(getKelas());
       const { payload: _pengumuman } = await dispatch(getPengumuman());
       const { payload: _soal } = await dispatch(getSoal());
-      setDataPengumuman(_pengumuman.data);
-      setKelasSiswa(_kelas.payload.data);
-      setJmlSiswa(siswa.data.length);
-      setJmlSoal(_soal.data.length);
+      const { payload: _token } = await dispatch(getTokenUjian());
+      const { payload: _ujian } = await dispatch(getUjian());
       if (auth.payload.status === "success") {
         const jwt = jwtDeccode(auth.payload.token);
         if (jwt.role !== "admin") {
           console.log(jwt);
           return navigate("/login");
         }
+        setDataPengumuman(_pengumuman.data);
+        setKelasSiswa(_kelas.payload.data);
+        setJmlSiswa(siswa.data.length);
+        setJmlSoal(_soal.data.length);
+        setTokenUjian(_token.token);
+        setJmlUjian(_ujian.data.length);
       } else {
         return navigate("/login");
       }
@@ -139,6 +156,41 @@ function Dashboard() {
     setKelas("");
   };
 
+  const handleRefreshTokenUjian = async () => {
+    const _token = await dispatch(createTokenUjian());
+    if (_token.payload.status === "success") setTokenUjian(_token.payload.data.token);
+    setAlerData({ msg: _token.payload.message, status: _token.payload.status });
+    setOpenAlert(true);
+  };
+
+  const LogAktifitas = () => {
+    return (
+      <Card
+        style={{
+          justify: "center",
+          alignContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <MDBox pt={3} px={3}>
+          <MDTypography align="center" variant="h6" fontWeight="medium">
+            TOKEN UJIAN
+          </MDTypography>
+        </MDBox>
+        <MDBox p={2}>
+          <MDTypography variant="h1" align="center" fontWeight="medium">
+            {tokenUjian}
+          </MDTypography>
+        </MDBox>
+        <MDBox p={2}>
+          <MDButton onClick={handleRefreshTokenUjian} color="info" variant="contained">
+            REFRESH
+          </MDButton>
+        </MDBox>
+      </Card>
+    );
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -156,7 +208,7 @@ function Dashboard() {
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
-              <ComplexStatisticsCard color="success" icon="quiz" title="Ujian" count="34k" />
+              <ComplexStatisticsCard color="success" icon="quiz" title="Ujian" count={jmlUjian} />
             </MDBox>
           </Grid>
         </Grid>

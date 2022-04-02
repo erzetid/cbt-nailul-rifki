@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getSiswa, postSiswa, deleteSiswa, putSiswa } from "store/slice/siswaThunk";
+import { getAktifitasLogs, deleteLogs } from "store/slice/logThunk";
 import { refreshToken } from "store/slice/authThunk";
 
 // @mui material components
@@ -39,9 +39,8 @@ import MDButton from "components/MDButton";
 import { jwtDeccode } from "utils/jwtDecode";
 
 const columns = [
-  { Header: "nisn", accessor: "nisn", width: "10%", align: "left" },
-  { Header: "nama", accessor: "nama", width: "25%", align: "left" },
-  { Header: "kelas", accessor: "kelas", align: "left" },
+  { Header: "nama", accessor: "namaSiswa", width: "25%", align: "left" },
+  { Header: "ujian", accessor: "namaUjian", align: "left" },
   { Header: "status", accessor: "status", align: "center" },
   { Header: "action", accessor: "action", align: "center" },
 ];
@@ -49,9 +48,9 @@ const columns = [
 const Aktifitas = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [refreshTable, setRefreshTable] = useState(0);
+  const [refreshTable, setRefreshTable] = useState(false);
 
-  const [barisSiswa, setBarisSiswa] = useState([]);
+  const [barisLog, setBarisLog] = useState([]);
   useEffect(() => {
     const checkLogin = async () => {
       const auth = await dispatch(refreshToken());
@@ -60,12 +59,19 @@ const Aktifitas = () => {
         if (jwt.role !== "admin") {
           return navigate("/login");
         }
+        const _log = await dispatch(getAktifitasLogs());
+        setBarisLog(setTable(_log.payload.data));
       } else {
         return navigate("/login");
       }
     };
     checkLogin();
-  }, []);
+  }, [refreshTable]);
+  const handleClickReset = async (id) => {
+    await dispatch(refreshToken());
+    await dispatch(deleteLogs(id));
+    setRefreshTable(!refreshTable);
+  };
 
   const Nama = ({ name }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
@@ -87,19 +93,20 @@ const Aktifitas = () => {
 
   const setTable = (siswa) => {
     return siswa.map((item) => {
-      const { kelas, nama, nisn } = item;
+      const { namaSiswa, namaUjian, _id } = item;
       return {
-        nama: <Nama name={nama} email="john@creative-tim.com" />,
-        kelas: <Kelas title={kelas} />,
+        namaSiswa: <Nama name={namaSiswa} email="john@creative-tim.com" />,
+        namaUjian: <Kelas title={namaUjian} />,
         status: <LoadingButton loading />,
-        nisn: (
-          <MDTypography component="a" variant="caption" color="text" fontWeight="medium">
-            {nisn}
-          </MDTypography>
-        ),
         action: (
           <>
-            <MDButton size="small" variant="gradient" color="error" fontWeight="medium">
+            <MDButton
+              onClick={() => handleClickReset(_id)}
+              size="small"
+              variant="gradient"
+              color="error"
+              fontWeight="medium"
+            >
               Reset
             </MDButton>
           </>
@@ -107,14 +114,6 @@ const Aktifitas = () => {
       };
     });
   };
-
-  useEffect(() => {
-    const fetchSiswa = async () => {
-      const _siswa = await dispatch(getSiswa());
-      setBarisSiswa(setTable(_siswa.payload.data));
-    };
-    fetchSiswa();
-  }, [refreshTable]);
 
   return (
     <DashboardLayout>
@@ -143,7 +142,7 @@ const Aktifitas = () => {
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
-                  table={{ columns, rows: barisSiswa }}
+                  table={{ columns, rows: barisLog }}
                   isSorted={false}
                   entriesPerPage={false}
                   showTotalEntries={false}

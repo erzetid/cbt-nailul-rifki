@@ -119,3 +119,49 @@ export const nonaktifkanUjian = createAsyncThunk(
     }
   }
 );
+
+export const getTokenUjian = createAsyncThunk(
+  "/ujian/token_ujian",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const states = getState();
+      const response = await api.get(`/ujian/token_ujian`, {
+        headers: {
+          Authorization: "Bearer " + states.auth.token, //the token is a variable which holds the token
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (!error.response) {
+        return (
+          { message: error.message, status: "error" } &&
+          rejectWithValue({ message: error.message, status: "error" })
+        );
+      }
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const createTokenUjian = createAsyncThunk(
+  "/ujian/create_token",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const states = getState();
+      const response = await api.get(`/ujian/create_token`, {
+        headers: {
+          Authorization: "Bearer " + states.auth.token, //the token is a variable which holds the token
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (!error.response) {
+        return (
+          { message: error.message, status: "error" } &&
+          rejectWithValue({ message: error.message, status: "error" })
+        );
+      }
+      return rejectWithValue(error.response.data);
+    }
+  }
+);

@@ -14,8 +14,14 @@ router.post("/", verifyTokenAdmin, ujianHandler.postHandler);
 router.put("/aktifkan/:_id", verifyTokenAdmin, ujianHandler.actifHandler);
 router.put("/nonaktifkan/:_id", verifyTokenAdmin, ujianHandler.nonaktifHandler);
 router.delete("/:_id", verifyTokenAdmin, ujianHandler.hapusHandler);
-router.get("/create_token", verifyTokenAdmin, ujianHandler.getToken);
+router.get("/create_token", verifyTokenAdmin, ujianHandler.setToken);
+router.get("/token_ujian", verifyTokenAdmin, ujianHandler.getToken);
 router.get("/logs", verifyTokenAdmin, ujianHandler.getLogsHandler);
+router.delete(
+  "/logs/:id",
+  verifyTokenAdmin,
+  ujianHandler.deleteLogsByIdHandler
+);
 router.get(
   "/score_by_ujian/:idUjian",
   verifyTokenAdmin,

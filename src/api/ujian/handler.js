@@ -24,6 +24,7 @@ export default class UjianHandler extends BaseHandler {
     this.hapusHandler = this.hapusHandler.bind(this);
     this.getByIdHandler = this.getByIdHandler.bind(this);
     this.getToken = this.getToken.bind(this);
+    this.setToken = this.setToken.bind(this);
     this.mulaiHandler = this.mulaiHandler.bind(this);
     this.updateJawabanHandler = this.updateJawabanHandler.bind(this);
     this.getScoreSiswaHandler = this.getScoreSiswaHandler.bind(this);
@@ -34,6 +35,7 @@ export default class UjianHandler extends BaseHandler {
     this.preTestHandler = this.preTestHandler.bind(this);
     this.selesaiHandler = this.selesaiHandler.bind(this);
     this.calculateHandler = this.calculateHandler.bind(this);
+    this.deleteLogsByIdHandler = this.deleteLogsByIdHandler.bind(this);
   }
   async getHandler(_req, res, _next) {
     try {
@@ -585,6 +587,34 @@ export default class UjianHandler extends BaseHandler {
     }
   }
 
+  async deleteLogsByIdHandler(req, res) {
+    try {
+      const { id } = req.params;
+      if (!mongoose.isValidObjectId(id))
+        return super.render(res, 400, {
+          status: "error",
+          message: "Logs tidak ditemukan!",
+        });
+      const deleted = await this.logs.deleteById(id);
+      if (!deleted)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Siswa tidak ditemukan!",
+        });
+
+      return super.render(res, 200, {
+        status: "success",
+        message: "Berhasil reset!",
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
   async getScoresByUjian(req, res) {
     try {
       const { idUjian } = req.params;
@@ -626,7 +656,7 @@ export default class UjianHandler extends BaseHandler {
     }
   }
 
-  async getToken(_req, res) {
+  async setToken(_req, res) {
     try {
       const data = await this.tokenService.set();
       if (!data)
@@ -765,6 +795,45 @@ export default class UjianHandler extends BaseHandler {
         status: "success",
         message: "Calculate",
         hasil,
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
+  async setToken(_req, res) {
+    try {
+      const data = await this.tokenService.set();
+      if (!data)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Gagal memperbarui token gagal!",
+        });
+      return super.render(res, 200, {
+        status: "success",
+        message: "Token berhasil diperabrui!",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
+  async getToken(_req, res) {
+    try {
+      const token = await this.tokenService.get();
+      return super.render(res, 200, {
+        status: "success",
+        message: "Token berhasil dimuat!",
+        token,
       });
     } catch (error) {
       console.log(error);
