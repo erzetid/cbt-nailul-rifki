@@ -1,10 +1,12 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Users from "../../model/user.js";
+import Siswas from "../../model/siswa.js";
 import BaseHandler from "../default.js";
 import { JWT_SECRET, REFRESH_TOKEN_SECRET } from "../../config/index.js";
 
 const user = new Users();
+const siswa = new Siswas();
 
 export default class AuthHandler extends BaseHandler {
   async getToken(req, res, _next) {
@@ -36,15 +38,18 @@ export default class AuthHandler extends BaseHandler {
           role: checkUsername.role,
         };
       } else {
+        const { kelas } = await siswa.getById(checkUsername.idUser);
+
         payload = {
           user: checkUsername._id,
+          kelas,
           idUser: checkUsername.idUser,
           role: checkUsername.role,
         };
       }
 
       const token = jwt.sign(payload, JWT_SECRET, {
-        expiresIn: "7d",
+        expiresIn: "10s",
       });
 
       const refreshTokenNew = jwt.sign(
@@ -100,15 +105,17 @@ export default class AuthHandler extends BaseHandler {
           role: checkUsername.role,
         };
       } else {
+        const { kelas } = await siswa.getById(checkUsername.idUser);
         payload = {
           user: checkUsername._id,
+          kelas,
           idUser: checkUsername.idUser,
           role: checkUsername.role,
         };
       }
 
       const token = jwt.sign(payload, JWT_SECRET, {
-        expiresIn: "7d",
+        expiresIn: "10s",
       });
 
       const refreshToken = jwt.sign(

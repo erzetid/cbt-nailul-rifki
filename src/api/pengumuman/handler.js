@@ -2,9 +2,9 @@ import Pengumumans from "../../model/pengumuman.js";
 import BaseHandler from "../default.js";
 import Kelas from "../../model/kelas.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 const kelass = new Kelas();
-
 const pengumuman = new Pengumumans();
 
 export default class PengumumanHandler extends BaseHandler {
@@ -29,6 +29,32 @@ export default class PengumumanHandler extends BaseHandler {
   async getByKelasHandler(req, res, _next) {
     try {
       const kelas = req.params.kelas;
+      const data = await pengumuman.getByKelas(kelas);
+
+      return super.render(res, 200, {
+        status: "success",
+        message: "Pengumuman berhasail dirender!",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
+  async getBySiswaHandler(req, res, _next) {
+    try {
+      let jwtToken = req.headers.authorization;
+      if (!jwtToken)
+        return res.status(401).json({
+          status: "error",
+          message: "Access Denied / Unauthorized request",
+        });
+      jwtToken = jwtToken.split(" ")[1];
+      const { kelas } = jwt.decode(jwtToken);
       const data = await pengumuman.getByKelas(kelas);
 
       return super.render(res, 200, {
