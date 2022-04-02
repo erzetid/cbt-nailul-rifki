@@ -32,9 +32,11 @@ router.post(
   verifyTokenSiswa,
   ujianHandler.getScoreSiswaHandler
 );
+router.post("/selesai/:idScore", verifyTokenSiswa, ujianHandler.selesaiHandler);
 router.post("/pertanyaan", verifyTokenSiswa, ujianHandler.getPerSoalSiswa);
 router.get("/siswa", verifyTokenSiswa, ujianHandler.getByKelasSiswaHandler);
 router.get("/pre_test/:idUjian", verifyTokenSiswa, ujianHandler.preTestHandler);
+router.get("/hitung/:idScore", ujianHandler.calculateHandler);
 router.get("/:_id", verifyTokenAdmin, ujianHandler.getByIdHandler);
 
 export default router;

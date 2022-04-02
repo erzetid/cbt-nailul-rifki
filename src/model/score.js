@@ -44,4 +44,8 @@ export default class Scores {
       { new: true }
     );
   }
+
+  async updateById(_id, data) {
+    return await scoreService.findByIdAndUpdate(_id, data);
+  }
 }

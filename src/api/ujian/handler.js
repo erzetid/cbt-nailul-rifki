@@ -32,6 +32,8 @@ export default class UjianHandler extends BaseHandler {
     this.getPerSoalSiswa = this.getPerSoalSiswa.bind(this);
     this.getByKelasSiswaHandler = this.getByKelasSiswaHandler.bind(this);
     this.preTestHandler = this.preTestHandler.bind(this);
+    this.selesaiHandler = this.selesaiHandler.bind(this);
+    this.calculateHandler = this.calculateHandler.bind(this);
   }
   async getHandler(_req, res, _next) {
     try {
@@ -325,6 +327,11 @@ export default class UjianHandler extends BaseHandler {
           });
         idScore = newScore._id;
       } else {
+        if (checkScore.status === "selesai")
+          return super.render(res, 400, {
+            status: "error",
+            message: "Kamu sudah menyelesaikan ujian ini!",
+          });
         idScore = checkScore._id;
       }
       if (
@@ -447,6 +454,51 @@ export default class UjianHandler extends BaseHandler {
         status: "success",
         message: "Hasil jawaban ditemukan!",
         data: score,
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
+  async selesaiHandler(req, res) {
+    try {
+      let jwtToken = req.headers.authorization;
+      if (!jwtToken)
+        return res.status(401).json({
+          status: "error",
+          message: "Access Denied / Unauthorized request",
+        });
+      jwtToken = jwtToken.split(" ")[1];
+      const { idUser: idSiswa } = jwt.decode(jwtToken);
+      const { idScore } = req.params;
+      if (!mongoose.isValidObjectId(idScore))
+        return super.render(res, 400, {
+          status: "error",
+          message: "Hasil ujian tidak ditemukan!",
+        });
+      const score = await this.scoreService.getById(idScore);
+      if (!score)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Hasil ujian tidak ditemukan!",
+        });
+      if (score.idSiswa !== idSiswa)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Kamu tidak berhak menyelesaikan ujian ini!",
+        });
+      await this.scoreService.updateById(idScore, {
+        waktuSelesai: Date.now(),
+        status: "selesai",
+      });
+      await this.logs.deleteByIdSiswaIdUjian(idSiswa, score.idUjian);
+      return super.render(res, 200, {
+        status: "success",
+        message: "Selamat kamu sudah menyelesaikan ujian ini!",
       });
     } catch (error) {
       console.log(error);
@@ -650,13 +702,69 @@ export default class UjianHandler extends BaseHandler {
           message: "Access Denied / Unauthorized request",
         });
       jwtToken = jwtToken.split(" ")[1];
-      const { kelas } = jwt.decode(jwtToken);
-      const data = await this.service.getByKelasSiswa(kelas);
+      const { kelas, idUser } = jwt.decode(jwtToken);
+      const _data = await this.service.getByKelasSiswa(kelas);
+      const data = await Promise.all(
+        _data.map(async (x) => {
+          const { _id } = x;
+          let statusSiswa = "Belum dikerjakan";
+          const checkScore = await this.scoreService.getByIdSiswaAndIdUjian(
+            idUser,
+            _id
+          );
+          if (checkScore) statusSiswa = checkScore.status;
+          return { ...x, statusSiswa };
+        })
+      );
 
       return super.render(res, 200, {
         status: "success",
         message: "Ujian by kelas siswa berhasil dirender!",
         data,
+      });
+    } catch (error) {
+      console.log(error);
+      return super.render(res, 500, {
+        status: "error",
+        message: "Mohon maaf, kesalahan server!",
+      });
+    }
+  }
+
+  async calculateHandler(req, res) {
+    try {
+      const { idScore } = req.params;
+      if (!mongoose.isValidObjectId(idScore))
+        return super.render(res, 400, {
+          status: "error",
+          message: "Nilai tidak ditemukan",
+        });
+      const data = await this.scoreService.getById(idScore);
+      if (!data)
+        return super.render(res, 400, {
+          status: "error",
+          message: "Nilai tidak ditemukan",
+        });
+      const point = 100 / data.jawaban.length;
+
+      let count = 0;
+      // Counter
+      await Promise.all(
+        data.jawaban.map(async (x) => {
+          const { idPertanyaan, jawaban } = x;
+          const checkJawaban = await this.soalService.checkJawaban(
+            idPertanyaan,
+            jawaban
+          );
+          if (checkJawaban) count++;
+        })
+      );
+      const hasil = point * count;
+
+      return super.render(res, 200, {
+        status: "success",
+        message: "Calculate",
+        hasil,
       });
     } catch (error) {
       console.log(error);

@@ -136,4 +136,11 @@ export default class Soals {
     }
     return null;
   }
+
+  async checkJawaban(idPertanyaan, jawaban) {
+    return await this.service.findOne({
+      "butir._id": mongoose.Types.ObjectId(idPertanyaan),
+      "butir.jawaban": jawaban,
+    });
+  }
 }
