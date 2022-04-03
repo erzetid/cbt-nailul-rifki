@@ -13,8 +13,10 @@ export default class Server {
   constructor(port) {
     this.port = port;
     this.view = {
-      static: path.join(path.resolve(), "dist/build/"),
-      public: path.join(path.resolve(), "dist/build/index.html"),
+      staticAdmin: path.join(path.resolve(), "dist/admin/"),
+      admin: path.join(path.resolve(), "dist/admin/index.html"),
+      staticSiswa: path.join(path.resolve(), "dist/siswa/"),
+      siswa: path.join(path.resolve(), "dist/siswa/index.html"),
     };
     this.middelwares();
     this.routes();
@@ -29,7 +31,8 @@ export default class Server {
     this.app.use((_req, _res, next) => {
       return next();
     });
-    this.app.use(express.static(this.view.static));
+    this.app.use(express.static(this.view.staticAdmin));
+    this.app.use(express.static(this.view.staticSiswa));
     this.app.use((err, _req, res, next) => {
       if (err instanceof SyntaxError) {
         return res.status(400).json({
@@ -49,7 +52,13 @@ export default class Server {
 
   routes() {
     this.app.get("/", (_req, res) => {
-      res.sendFile(this.view.public);
+      res.send("404 Not Found!");
+    });
+    this.app.get("/admin", (_req, res) => {
+      res.sendFile(this.view.admin);
+    });
+    this.app.get("/siswa", (_req, res) => {
+      res.sendFile(this.view.siswa);
     });
     this.app.use("/api/", router);
   }

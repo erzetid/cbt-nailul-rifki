@@ -1,4 +1,5 @@
-import Server from './src/server.js';
+import "dotenv/config";
+import Server from "./src/server.js";
 
-const server = new Server(3660);
+const server = new Server(process.env.PORT_APP);
 server.listen();
