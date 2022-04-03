@@ -165,3 +165,26 @@ export const createTokenUjian = createAsyncThunk(
     }
   }
 );
+
+export const getNilaiUjian = createAsyncThunk(
+  "/ujian/score_by_ujian",
+  async (payload, { getState, rejectWithValue }) => {
+    try {
+      const states = getState();
+      const response = await api.get(`/ujian/score_by_ujian/` + payload, {
+        headers: {
+          Authorization: "Bearer " + states.auth.token, //the token is a variable which holds the token
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (!error.response) {
+        return (
+          { message: error.message, status: "error" } &&
+          rejectWithValue({ message: error.message, status: "error" })
+        );
+      }
+      return rejectWithValue(error.response.data);
+    }
+  }
+);

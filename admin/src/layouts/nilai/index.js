@@ -44,10 +44,40 @@ import MDButton from "components/MDButton";
 import { useDispatch } from "react-redux";
 import { refreshToken } from "store/slice/authThunk";
 import { jwtDeccode } from "utils/jwtDecode";
-
+import PointDialog from "./PointDialog";
+import { getUjian } from "store/slice/ujianThunk";
+import { filterKelas } from "utils/jwtDecode";
+import { getKelas } from "store/slice/kelasThunk";
+import { getNilaiUjian } from "store/slice/ujianThunk";
 function Nilai() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [kelasSiswa, setKelasSiswa] = useState([{ _id: "", nama: "" }]);
+  const [ujianArr, setUjianArr] = useState([]);
+  const [dataNilai, setDataNilai] = useState([
+    {
+      nama: "",
+      soal: "",
+      nilai: "",
+      waktuMulai: "",
+      waktuSelesai: "",
+      status: "",
+    },
+  ]);
+
+  const handleClickOpen = async (_id) => {
+    const nilai = await dispatch(getNilaiUjian(_id));
+    if (nilai.payload.status === "success") {
+      setDataNilai(nilai.payload.data);
+    }
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   useEffect(() => {
     const checkLogin = async () => {
       const auth = await dispatch(refreshToken());
@@ -57,6 +87,10 @@ function Nilai() {
           console.log(jwt);
           return navigate("/login");
         }
+        const _ujian = await dispatch(getUjian());
+        setUjianArr(_ujian.payload.data);
+        const _kelas = await dispatch(getKelas());
+        setKelasSiswa(_kelas.payload.data);
       } else {
         return navigate("/login");
       }
@@ -75,42 +109,26 @@ function Nilai() {
     columns: [
       { Header: "Nama Ujian", accessor: "namaUjian", width: "15%", align: "left" },
       { Header: "Kelas", accessor: "kelas", align: "left" },
-      { Header: "Selesai Ujian", accessor: "selesai", align: "center" },
+      { Header: "Status", accessor: "status", align: "center" },
       { Header: "aksi", accessor: "aksi", align: "center" },
     ],
-    rows: [
-      {
-        namaUjian: <NamaUjian nama={"62054fced9d1b9d18bed6394"} />,
-        kelas: "XII TSM2",
-        jumlahSoal: <MDBadge badgeContent="20 butir" size="xs" container />,
-        selesai: <MDTypography sx={{ fontSize: "inherit" }}>20/10/2022 19:20</MDTypography>,
-        aksi: (
-          <>
-            <Icon
-              sx={{ cursor: "pointer", mr: 1 }}
-              onClick={() => navigate("/manage_soal")}
-              color="success"
-              fontSize="small"
-            >
-              visibility
-            </Icon>
-          </>
-        ),
-      },
-      {
-        namaUjian: <NamaUjian nama={"62054fced9d1b9d18be5555"} />,
-        kelas: "XII TSM2",
-        jumlahSoal: <MDBadge badgeContent="20 butir" size="xs" container />,
-        selesai: <MDTypography sx={{ fontSize: "inherit" }}>21/10/2022 19:20</MDTypography>,
-        aksi: (
-          <>
-            <Icon sx={{ cursor: "pointer", mr: 1 }} color="success" fontSize="small">
-              visibility
-            </Icon>
-          </>
-        ),
-      },
-    ],
+    rows: ujianArr.map((ujian) => ({
+      namaUjian: <NamaUjian nama={ujian.nama} />,
+      kelas: filterKelas(kelasSiswa, ujian.idKelas),
+      status: ujian.status,
+      aksi: (
+        <>
+          <Icon
+            sx={{ cursor: "pointer", mr: 1 }}
+            onClick={() => handleClickOpen(ujian._id)}
+            color="success"
+            fontSize="small"
+          >
+            visibility
+          </Icon>
+        </>
+      ),
+    })),
   };
 
   return (
@@ -141,6 +159,7 @@ function Nilai() {
         </Grid>
       </MDBox>
       <Footer />
+      <PointDialog open={open} data={dataNilai} handleClose={handleClose} />
     </DashboardLayout>
   );
 }

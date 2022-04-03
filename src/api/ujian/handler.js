@@ -36,6 +36,7 @@ export default class UjianHandler extends BaseHandler {
     this.selesaiHandler = this.selesaiHandler.bind(this);
     this.calculateHandler = this.calculateHandler.bind(this);
     this.deleteLogsByIdHandler = this.deleteLogsByIdHandler.bind(this);
+    this.calculate = this.calculate.bind(this);
   }
   async getHandler(_req, res, _next) {
     try {
@@ -630,11 +631,13 @@ export default class UjianHandler extends BaseHandler {
           const checkSiswa = await this.siswaService.getById(idSiswa);
           const { nama: soal } = await this.soalService.getById(idSoal);
           const waktuSelesais = waktuSelesai === 0 ? waktuMulai : waktuSelesai;
+          const nilai = await this.calculate(_id);
 
           return {
             nama: checkSiswa && checkSiswa.nama,
             soal,
             idScore: _id,
+            nilai,
             waktuMulai: new Date(waktuMulai).toISOString(),
             waktuSelesai: new Date(waktuSelesais).toISOString(),
             status,
@@ -803,6 +806,37 @@ export default class UjianHandler extends BaseHandler {
         message: "Mohon maaf, kesalahan server!",
       });
     }
+  }
+
+  async calculate(idScore) {
+    if (!mongoose.isValidObjectId(idScore))
+      return super.render(res, 400, {
+        status: "error",
+        message: "Nilai tidak ditemukan",
+      });
+    const data = await this.scoreService.getById(idScore);
+    if (!data)
+      return super.render(res, 400, {
+        status: "error",
+        message: "Nilai tidak ditemukan",
+      });
+    const point = 100 / data.jawaban.length;
+
+    let count = 0;
+    // Counter
+    await Promise.all(
+      data.jawaban.map(async (x) => {
+        const { idPertanyaan, jawaban } = x;
+        const checkJawaban = await this.soalService.checkJawaban(
+          idPertanyaan,
+          jawaban
+        );
+        if (checkJawaban) count++;
+      })
+    );
+    const hasil = point * count;
+
+    return hasil;
   }
 
   async setToken(_req, res) {
