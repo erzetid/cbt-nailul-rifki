@@ -15,13 +15,14 @@
     "test": "concurrently \"jest --watch --verbose\" \"npm run test --prefix admin\" \"npm run test --prefix siswa\"",
     "dev": "export NODE_ENV=development && concurrently \"nodemon\" \"npm run admin\"",
     "build:server": "webpack --mode production",
-    "build:all": "rm -rf dist/ && concurrently \"webpack --mode production\" \"npm run build --prefix admin\" \"npm run build --prefix siswa\"",
+    "build:all": "rm -rf dist/ && concurrently \"webpack --mode production\" \"npm run build --prefix admin\" ",
     "build:docker": "docker build -t cbt:latest .",
     "password": "node password.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.17.8",
     "bcrypt": "^5.0.1",
+    "concurrently": "^7.1.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^15.0.0",

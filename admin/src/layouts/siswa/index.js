@@ -13,7 +13,6 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { forwardRef, useEffect, useState } from "react";
 import {
   CircularProgress,
   FormControl,
@@ -23,35 +22,31 @@ import {
   Snackbar,
 } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { getSiswa, postSiswa, deleteSiswa, putSiswa } from "store/slice/siswaThunk";
-import { refreshToken } from "store/slice/authThunk";
-
-// @mui material components
-import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-
-// Material Dashboard 2 React components
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-
-// Material Dashboard 2 React example components
-import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
-import DataTable from "examples/Tables/DataTable";
-
-// Data
-import MDButton from "components/MDButton";
-import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import { jwtDeccode } from "utils/jwtDecode";
+// @mui material components
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+// Material Dashboard 2 React components
+import MDBox from "components/MDBox";
+// Data
+import MDButton from "components/MDButton";
+import MDTypography from "components/MDTypography";
+import Footer from "examples/Footer";
+// Material Dashboard 2 React example components
+import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import DataTable from "examples/Tables/DataTable";
+import { forwardRef, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { refreshToken } from "store/slice/authThunk";
 import { getKelas } from "store/slice/kelasThunk";
-import { filterKelas } from "utils/jwtDecode";
+import { deleteSiswa, getSiswa, postSiswa, putSiswa } from "store/slice/siswaThunk";
+import { filterKelas, jwtDeccode } from "utils/jwtDecode";
 
 const Alert = forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
