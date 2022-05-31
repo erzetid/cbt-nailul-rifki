@@ -14,19 +14,13 @@ Coded by www.creative-tim.com
 */
 
 // prop-types is a library for typechecking of props
-import PropTypes from "prop-types";
-
 // @mui material components
 import Container from "@mui/material/Container";
-import Link from "@mui/material/Link";
-import Icon from "@mui/material/Icon";
-
-// Material Dashboard 2 React components
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-
 // Material Dashboard 2 PRO React base styles
 import typography from "assets/theme/base/typography";
+// Material Dashboard 2 React components
+import MDBox from "components/MDBox";
+import PropTypes from "prop-types";
 
 function Footer({ light }) {
   const { size } = typography;
@@ -50,19 +44,7 @@ function Footer({ light }) {
             color={light ? "white" : "text"}
             fontSize={size.sm}
           >
-            &copy; {new Date().getFullYear()}, made with
-            <MDBox fontSize={size.md} color={light ? "white" : "dark"} mb={-0.5} mx={0.25}>
-              <Icon color="inherit" fontSize="inherit">
-                favorite
-              </Icon>
-            </MDBox>
-            by
-            <Link href="https://www.creative-tim.com/" target="_blank">
-              <MDTypography variant="button" fontWeight="medium" color={light ? "white" : "dark"}>
-                &nbsp;Creative Tim&nbsp;
-              </MDTypography>
-            </Link>
-            for a better web.
+            &copy; {new Date().getFullYear()}
           </MDBox>
         </MDBox>
       </Container>

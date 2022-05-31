@@ -1,9 +1,9 @@
-import bcrypt from "bcrypt";
+import bcrypt from 'bcrypt';
 
 const generatePassword = async () => {
   const plainPassword = process.argv.slice(2);
   if (!plainPassword.length) {
-    return console.log("Password tidak boleh kosong");
+    return console.log('Password tidak boleh kosong');
   }
   const salt = bcrypt.genSaltSync(10);
   const password = bcrypt.hashSync(plainPassword[0], salt);
